@@ -1,0 +1,1562 @@
+/**
+ * GPS - Geopolitical Simulator
+ * main.cpp - Ponto de entrada do jogo
+ * 
+ * Inicializa o motor de simulação com dados de exemplo (demo) e
+ * executa o loop principal do jogo em modo texto (MVP).
+ */
+
+#include "core/SimulationEngine.h"
+#include "world/WorldState.h"
+#include "core/Types.h"
+#include "systems/economy/EconomySystem.h"
+#include "systems/diplomacy/DiplomacySystem.h"
+#include "systems/military/MilitarySystem.h"
+#include "systems/laws/LawSystem.h"
+#include "systems/intelligence/IntelligenceSystem.h"
+#include <iostream>
+#include <iomanip>
+#include <string>
+#include <thread>
+#include <chrono>
+#include <sstream>
+#include <limits>
+#include <algorithm>
+
+using namespace GPS;
+
+// ====================================================================
+// Criação do mundo de demonstração com 8 países realistas
+// ====================================================================
+void createDemoWorld(WorldState& world) {
+    // ============== Brasil ==============
+    {
+        Country c;
+        c.id = 1;
+        c.name = "Brasil";
+        c.officialName = "República Federativa do Brasil";
+        c.isoCode = "BRA";
+        c.capital = "Brasília";
+        c.capitalCoord = {-15.79, -47.88};
+        c.areaSqKm = 8515767;
+        c.coastlineKm = 7491;
+        c.government = GovernmentType::PRESIDENTIAL_REPUBLIC;
+        c.economicSystem = EconomicSystem::MIXED_ECONOMY;
+        c.headOfState = "Presidente do Brasil";
+        c.population = 215.0;
+        c.populationGrowthRate = 0.005;
+        c.lifeExpectancy = 76.0;
+        c.medianAge = 34.0;
+        c.urbanizationRate = 0.87;
+        c.literacyRate = 0.93;
+        c.hdi = 0.754;
+        c.gdp = Money(1.92e3);   // ~1.92 trilhão USD
+        c.gdpGrowthRate = 0.029;
+        c.gdpPerCapita = 8917.0;
+        c.inflation = 0.046;
+        c.unemploymentRate = 0.08;
+        c.giniCoefficient = 0.53;
+        c.interestRate = 0.1075;
+        c.exchangeRate = 4.97;
+        c.publicDebt = Money(1.52e3);
+        c.debtToGDP = 0.79;
+        c.foreignReserves = Money(330.0);
+        c.governmentApproval = 0.38;
+        c.corruption = 0.43;
+        c.ruleOfLaw = 0.48;
+        c.democracy = 0.69;
+        c.pressLiberty = 0.57;
+        c.internalStability = 0.60;
+        c.budgetDefense = 0.04;
+        c.budgetEducation = 0.16;
+        c.budgetHealthcare = 0.10;
+        c.budgetSocialWelfare = 0.30;
+        c.budgetInfrastructure = 0.06;
+        c.co2EmissionsMT = 476.0;
+        c.energyProductionTWh = 690.0;
+        c.energyConsumptionTWh = 580.0;
+        c.renewableShare = 0.83;
+        c.softPower = 0.45;
+        c.military.activePersonnel = 366500;
+        c.military.reservePersonnel = 1340000;
+        c.military.nuclearWarheads = 0;
+        c.incomeTaxLow = 0.075;
+        c.incomeTaxMid = 0.15;
+        c.incomeTaxHigh = 0.275;
+        c.corporateTax = 0.34;
+        c.salesTax = 0.17;
+        c.neighbors = {2, 5}; // ARG, COL (simplificado)
+        c.isPlayerControlled = true;
+        c.isAIActive = false;
+        world.addCountry(c);
+    }
+
+    // ============== Argentina ==============
+    {
+        Country c;
+        c.id = 2;
+        c.name = "Argentina";
+        c.officialName = "República Argentina";
+        c.isoCode = "ARG";
+        c.capital = "Buenos Aires";
+        c.capitalCoord = {-34.60, -58.38};
+        c.areaSqKm = 2780400;
+        c.coastlineKm = 4989;
+        c.government = GovernmentType::PRESIDENTIAL_REPUBLIC;
+        c.economicSystem = EconomicSystem::MIXED_ECONOMY;
+        c.headOfState = "Presidente da Argentina";
+        c.population = 46.0;
+        c.populationGrowthRate = 0.009;
+        c.lifeExpectancy = 77.0;
+        c.medianAge = 32.0;
+        c.urbanizationRate = 0.92;
+        c.literacyRate = 0.99;
+        c.hdi = 0.842;
+        c.gdp = Money(640.0);
+        c.gdpGrowthRate = -0.015;
+        c.gdpPerCapita = 13650.0;
+        c.inflation = 0.95;
+        c.unemploymentRate = 0.07;
+        c.giniCoefficient = 0.42;
+        c.interestRate = 0.97;
+        c.exchangeRate = 350.0;
+        c.publicDebt = Money(400.0);
+        c.debtToGDP = 0.62;
+        c.foreignReserves = Money(25.0);
+        c.governmentApproval = 0.42;
+        c.corruption = 0.50;
+        c.democracy = 0.72;
+        c.internalStability = 0.50;
+        c.softPower = 0.35;
+        c.military.activePersonnel = 80000;
+        c.co2EmissionsMT = 170.0;
+        c.neighbors = {1}; // BRA
+        world.addCountry(c);
+    }
+
+    // ============== EUA ==============
+    {
+        Country c;
+        c.id = 3;
+        c.name = "Estados Unidos";
+        c.officialName = "Estados Unidos da América";
+        c.isoCode = "USA";
+        c.capital = "Washington D.C.";
+        c.capitalCoord = {38.90, -77.04};
+        c.areaSqKm = 9833520;
+        c.coastlineKm = 19924;
+        c.government = GovernmentType::PRESIDENTIAL_REPUBLIC;
+        c.economicSystem = EconomicSystem::FREE_MARKET;
+        c.headOfState = "Presidente dos EUA";
+        c.population = 333.0;
+        c.populationGrowthRate = 0.004;
+        c.lifeExpectancy = 78.0;
+        c.medianAge = 38.0;
+        c.urbanizationRate = 0.83;
+        c.literacyRate = 0.99;
+        c.hdi = 0.921;
+        c.gdp = Money(25.5e3);  // ~25.5 trilhões
+        c.gdpGrowthRate = 0.021;
+        c.gdpPerCapita = 76399.0;
+        c.inflation = 0.034;
+        c.unemploymentRate = 0.037;
+        c.giniCoefficient = 0.41;
+        c.interestRate = 0.055;
+        c.exchangeRate = 1.0;
+        c.publicDebt = Money(33.0e3);
+        c.debtToGDP = 1.29;
+        c.foreignReserves = Money(240.0);
+        c.governmentApproval = 0.40;
+        c.corruption = 0.33;
+        c.democracy = 0.79;
+        c.internalStability = 0.65;
+        c.softPower = 0.85;
+        c.military.activePersonnel = 1395350;
+        c.military.reservePersonnel = 845000;
+        c.military.nuclearWarheads = 5550;
+        c.budgetDefense = 0.13;
+        c.co2EmissionsMT = 5007.0;
+        c.energyProductionTWh = 4380.0;
+        c.energyConsumptionTWh = 3930.0;
+        c.renewableShare = 0.21;
+        c.neighbors = {4}; // MEX (simplificado)
+        world.addCountry(c);
+    }
+
+    // ============== México ==============
+    {
+        Country c;
+        c.id = 4;
+        c.name = "México";
+        c.officialName = "Estados Unidos Mexicanos";
+        c.isoCode = "MEX";
+        c.capital = "Cidade do México";
+        c.government = GovernmentType::PRESIDENTIAL_REPUBLIC;
+        c.economicSystem = EconomicSystem::MIXED_ECONOMY;
+        c.population = 130.0;
+        c.hdi = 0.758;
+        c.gdp = Money(1.32e3);
+        c.gdpGrowthRate = 0.032;
+        c.inflation = 0.055;
+        c.unemploymentRate = 0.035;
+        c.giniCoefficient = 0.45;
+        c.democracy = 0.60;
+        c.internalStability = 0.45;
+        c.corruption = 0.60;
+        c.softPower = 0.35;
+        c.military.activePersonnel = 277000;
+        c.co2EmissionsMT = 470.0;
+        c.neighbors = {3}; // USA
+        world.addCountry(c);
+    }
+
+    // ============== Colômbia ==============
+    {
+        Country c;
+        c.id = 5;
+        c.name = "Colômbia";
+        c.isoCode = "COL";
+        c.capital = "Bogotá";
+        c.government = GovernmentType::PRESIDENTIAL_REPUBLIC;
+        c.economicSystem = EconomicSystem::MIXED_ECONOMY;
+        c.population = 52.0;
+        c.hdi = 0.752;
+        c.gdp = Money(340.0);
+        c.gdpGrowthRate = 0.075;
+        c.inflation = 0.095;
+        c.unemploymentRate = 0.10;
+        c.democracy = 0.64;
+        c.internalStability = 0.50;
+        c.corruption = 0.55;
+        c.softPower = 0.25;
+        c.military.activePersonnel = 293200;
+        c.co2EmissionsMT = 92.0;
+        c.neighbors = {1}; // BRA
+        c.terrorismThreat = 0.3;
+        world.addCountry(c);
+    }
+
+    // ============== China ==============
+    {
+        Country c;
+        c.id = 6;
+        c.name = "China";
+        c.officialName = "República Popular da China";
+        c.isoCode = "CHN";
+        c.capital = "Pequim";
+        c.government = GovernmentType::ONE_PARTY_STATE;
+        c.economicSystem = EconomicSystem::STATE_CAPITALISM;
+        c.population = 1412.0;
+        c.populationGrowthRate = -0.001;
+        c.lifeExpectancy = 78.0;
+        c.medianAge = 39.0;
+        c.hdi = 0.768;
+        c.gdp = Money(17.9e3);
+        c.gdpGrowthRate = 0.052;
+        c.gdpPerCapita = 12720.0;
+        c.inflation = 0.007;
+        c.unemploymentRate = 0.052;
+        c.giniCoefficient = 0.38;
+        c.interestRate = 0.035;
+        c.exchangeRate = 7.1;
+        c.publicDebt = Money(14.0e3);
+        c.debtToGDP = 0.78;
+        c.foreignReserves = Money(3200.0);
+        c.democracy = 0.10;
+        c.pressLiberty = 0.10;
+        c.internalStability = 0.75;
+        c.corruption = 0.45;
+        c.softPower = 0.55;
+        c.military.activePersonnel = 2035000;
+        c.military.reservePersonnel = 510000;
+        c.military.nuclearWarheads = 350;
+        c.budgetDefense = 0.07;
+        c.co2EmissionsMT = 11472.0;
+        c.energyProductionTWh = 8530.0;
+        c.energyConsumptionTWh = 8270.0;
+        c.renewableShare = 0.30;
+        c.neighbors = {7}; // RUS
+        world.addCountry(c);
+    }
+
+    // ============== Rússia ==============
+    {
+        Country c;
+        c.id = 7;
+        c.name = "Rússia";
+        c.officialName = "Federação Russa";
+        c.isoCode = "RUS";
+        c.capital = "Moscou";
+        c.government = GovernmentType::SEMI_PRESIDENTIAL;
+        c.economicSystem = EconomicSystem::STATE_CAPITALISM;
+        c.population = 144.0;
+        c.populationGrowthRate = -0.005;
+        c.lifeExpectancy = 73.0;
+        c.medianAge = 40.0;
+        c.hdi = 0.822;
+        c.gdp = Money(1.78e3);
+        c.gdpGrowthRate = -0.02;
+        c.inflation = 0.12;
+        c.unemploymentRate = 0.03;
+        c.giniCoefficient = 0.36;
+        c.interestRate = 0.16;
+        c.exchangeRate = 90.0;
+        c.publicDebt = Money(305.0);
+        c.debtToGDP = 0.17;
+        c.foreignReserves = Money(580.0);
+        c.democracy = 0.20;
+        c.pressLiberty = 0.12;
+        c.internalStability = 0.60;
+        c.corruption = 0.60;
+        c.softPower = 0.30;
+        c.military.activePersonnel = 1150000;
+        c.military.reservePersonnel = 2000000;
+        c.military.nuclearWarheads = 6257;
+        c.budgetDefense = 0.12;
+        c.co2EmissionsMT = 1756.0;
+        c.energyProductionTWh = 1190.0;
+        c.oilProductionBarrelsDay = 10.5e6;
+        c.neighbors = {6}; // CHN
+        world.addCountry(c);
+    }
+
+    // ============== Alemanha ==============
+    {
+        Country c;
+        c.id = 8;
+        c.name = "Alemanha";
+        c.officialName = "República Federal da Alemanha";
+        c.isoCode = "DEU";
+        c.capital = "Berlim";
+        c.government = GovernmentType::PARLIAMENTARY_REPUBLIC;
+        c.economicSystem = EconomicSystem::SOCIAL_MARKET;
+        c.population = 84.0;
+        c.populationGrowthRate = 0.001;
+        c.lifeExpectancy = 81.0;
+        c.medianAge = 46.0;
+        c.hdi = 0.942;
+        c.gdp = Money(4.26e3);
+        c.gdpGrowthRate = 0.001;
+        c.gdpPerCapita = 50790.0;
+        c.inflation = 0.032;
+        c.unemploymentRate = 0.055;
+        c.giniCoefficient = 0.31;
+        c.interestRate = 0.045;
+        c.exchangeRate = 0.92;
+        c.publicDebt = Money(2.80e3);
+        c.debtToGDP = 0.66;
+        c.foreignReserves = Money(270.0);
+        c.democracy = 0.90;
+        c.pressLiberty = 0.85;
+        c.internalStability = 0.80;
+        c.corruption = 0.20;
+        c.softPower = 0.70;
+        c.military.activePersonnel = 183500;
+        c.military.nuclearWarheads = 0;
+        c.budgetDefense = 0.05;
+        c.co2EmissionsMT = 674.0;
+        c.renewableShare = 0.46;
+        world.addCountry(c);
+    }
+
+    // ============== Relações diplomáticas iniciais ==============
+    {
+        // BRA-ARG: Aliados regionais
+        DiplomaticRelation rel;
+        rel.relations = 60;
+        rel.status = DiplomaticStatus::FRIENDLY;
+        rel.hasTradeAgreement = true;
+        world.setRelation(1, 2, rel);
+    }
+    {
+        // BRA-USA: Amigável
+        DiplomaticRelation rel;
+        rel.relations = 40;
+        rel.status = DiplomaticStatus::FRIENDLY;
+        world.setRelation(1, 3, rel);
+    }
+    {
+        // BRA-CHN: Neutro/Comércio
+        DiplomaticRelation rel;
+        rel.relations = 30;
+        rel.status = DiplomaticStatus::NEUTRAL;
+        rel.hasTradeAgreement = true;
+        world.setRelation(1, 6, rel);
+    }
+    {
+        // USA-CHN: Rivalidade
+        DiplomaticRelation rel;
+        rel.relations = -30;
+        rel.status = DiplomaticStatus::HOSTILE;
+        world.setRelation(3, 6, rel);
+    }
+    {
+        // USA-RUS: Hostil
+        DiplomaticRelation rel;
+        rel.relations = -60;
+        rel.status = DiplomaticStatus::HOSTILE;
+        world.setRelation(3, 7, rel);
+    }
+    {
+        // CHN-RUS: Parceiros
+        DiplomaticRelation rel;
+        rel.relations = 50;
+        rel.status = DiplomaticStatus::FRIENDLY;
+        rel.hasTradeAgreement = true;
+        world.setRelation(6, 7, rel);
+    }
+    {
+        // USA-DEU: Aliados
+        DiplomaticRelation rel;
+        rel.relations = 70;
+        rel.status = DiplomaticStatus::ALLIED;
+        rel.hasTradeAgreement = true;
+        world.setRelation(3, 8, rel);
+    }
+
+    // Definir Brasil como país do jogador
+    world.setPlayerCountry(1);
+}
+
+// ====================================================================
+// Utilitários de entrada
+// ====================================================================
+static double readDouble(const std::string& prompt, double min, double max) {
+    double v;
+    while (true) {
+        std::cout << prompt << " [" << min << "-" << max << "]: ";
+        if (std::cin >> v && v >= min && v <= max) return v;
+        std::cout << "  Valor inválido. Tente novamente.\n";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+}
+
+static int readInt(const std::string& prompt, int min, int max) {
+    int v;
+    while (true) {
+        std::cout << prompt << " [" << min << "-" << max << "]: ";
+        if (std::cin >> v && v >= min && v <= max) return v;
+        std::cout << "  Valor inválido. Tente novamente.\n";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+}
+
+// ====================================================================
+// Interface de texto / Menu do MVP
+// ====================================================================
+void printHeader() {
+    std::cout << "\n";
+    std::cout << "╔══════════════════════════════════════════════════════════╗\n";
+    std::cout << "║          GPS - GEOPOLITICAL SIMULATOR  v0.1.0          ║\n";
+    std::cout << "║        Simulação Geopolítica Total em Tempo Real       ║\n";
+    std::cout << "╚══════════════════════════════════════════════════════════╝\n";
+    std::cout << "\n";
+}
+
+void printCountryDashboard(const WorldState& world, CountryID id) {
+    const auto& c = world.getCountry(id);
+
+    std::cout << "\n╔══════════════════════════════════════════════════════════╗\n";
+    std::cout << "║   " << std::left << std::setw(50) << c.name << "     ║\n";
+    std::cout << "╠══════════════════════════════════════════════════════════╣\n";
+
+    std::cout << std::fixed << std::setprecision(1);
+    std::cout << "║ População: " << std::setw(8) << c.population << "M"
+              << "  | PIB: $" << std::setw(10) << c.gdp.billions << "B"
+              << "     ║\n";
+    std::cout << "║ Cresc.PIB: " << std::setw(6) << (c.gdpGrowthRate * 100.0) << "%"
+              << "  | Inflação: " << std::setw(7) << (c.inflation * 100.0) << "%"
+              << "     ║\n";
+    std::cout << "║ Desemprego:" << std::setw(6) << (c.unemploymentRate * 100.0) << "%"
+              << "  | Dívida/PIB: " << std::setw(5) << (c.debtToGDP * 100.0) << "%"
+              << "    ║\n";
+    std::cout << "║ Aprovação: " << std::setw(6) << (c.governmentApproval * 100.0) << "%"
+              << "  | Estabili.: " << std::setw(5) << (c.internalStability * 100.0) << "%"
+              << "    ║\n";
+    std::cout << "║ IDH: " << std::setprecision(3) << std::setw(5) << c.hdi
+              << std::setprecision(1)
+              << "        | Democracia: " << std::setw(5) << (c.democracy * 100.0) << "%"
+              << "    ║\n";
+    std::cout << "║ Corrupção: " << std::setw(6) << (c.corruption * 100.0) << "%"
+              << "  | Poder Soft: " << std::setw(4) << (c.softPower * 100.0) << "%"
+              << "     ║\n";
+    std::cout << "║ Militar: " << std::setw(8) << c.military.activePersonnel << " efetivos"
+              << "                      ║\n";
+
+    if (c.military.nuclearWarheads > 0) {
+        std::cout << "║ ☢ Ogivas Nucleares: " << std::setw(5) << c.military.nuclearWarheads
+                  << "                              ║\n";
+    }
+    std::cout << "╚══════════════════════════════════════════════════════════╝\n";
+}
+
+void printMenu(const SimDate& date) {
+    std::cout << std::right;
+    std::cout << "\n  Data: " << date.year << "/" << std::setw(2) << std::setfill('0')
+              << (int)date.month << "/" << std::setw(2) << (int)date.day << std::setfill(' ') << "\n";
+    std::cout << "═══════════════════ AÇÕES ═══════════════════\n";
+    std::cout << "  [1]  Painel do País\n";
+    std::cout << "  [2]  Economia  (impostos, orçamento, câmbio)\n";
+    std::cout << "  [3]  Diplomacia (relações, propostas, guerras)\n";
+    std::cout << "  [4]  Militar   (forças, operações, conflitos)\n";
+    std::cout << "  [5]  Legislação (propor leis, revogar, vigentes)\n";
+    std::cout << "  [6]  Inteligência (agências, operações ocultas)\n";
+    std::cout << "  [7]  Ranking Mundial\n";
+    std::cout << "  [8]  Avançar 1 dia\n";
+    std::cout << "  [9]  Avançar 1 mês\n";
+    std::cout << "  [10] Avançar 1 ano\n";
+    std::cout << "  [0]  Sair\n";
+    std::cout << "═════════════════════════════════════════════\n";
+    std::cout << "Escolha: ";
+}
+
+void printWorldRanking(const WorldState& world) {
+    struct RankEntry {
+        CountryID id;
+        std::string name;
+        double gdp;
+        double population;
+        double power;
+    };
+
+    std::vector<RankEntry> entries;
+    for (auto cid : world.getAllCountryIds()) {
+        const auto& c = world.getCountry(cid);
+        entries.push_back({cid, c.name, c.gdp.billions, c.population, c.calculatePowerIndex()});
+    }
+
+    std::sort(entries.begin(), entries.end(), [](const RankEntry& a, const RankEntry& b) {
+        return a.power > b.power;
+    });
+
+    std::cout << "\n╔══════════════════════════════════════════════════════════════════╗\n";
+    std::cout << "║                     RANKING MUNDIAL                             ║\n";
+    std::cout << "╠════╦══════════════════╦════════════╦════════════╦════════════════╣\n";
+    std::cout << "║ #  ║ País             ║ PIB ($B)   ║ Pop. (M)   ║ Índice Poder   ║\n";
+    std::cout << "╠════╬══════════════════╬════════════╬════════════╬════════════════╣\n";
+
+    int rank = 1;
+    for (const auto& e : entries) {
+        std::cout << "║ " << std::setw(2) << rank++ << " ║ "
+                  << std::left << std::setw(16) << e.name << " ║ "
+                  << std::right << std::setw(10) << std::fixed << std::setprecision(1) << e.gdp << " ║ "
+                  << std::setw(10) << e.population << " ║ "
+                  << std::setw(14) << std::setprecision(3) << e.power << " ║\n";
+    }
+    std::cout << "╚════╩══════════════════╩════════════╩════════════╩════════════════╝\n";
+}
+
+void printDiplomacy(const WorldState& world, CountryID playerId) {
+    std::cout << "\n╔════════════════════════════════════════════════════════════════╗\n";
+    std::cout << "║              RELAÇÕES DIPLOMÁTICAS                            ║\n";
+    std::cout << "╠══╦══════════════════╦════════╦══════════╦════════════════════╣\n";
+    std::cout << "║ID║ País             ║Relações║ Status   ║ Acordos            ║\n";
+    std::cout << "╠══╬══════════════════╬════════╬══════════╬════════════════════╣\n";
+
+    for (auto cid : world.getAllCountryIds()) {
+        if (cid == playerId) continue;
+        const auto& other = world.getCountry(cid);
+        const auto& rel = world.getRelation(playerId, cid);
+
+        std::string statusStr;
+        switch (rel.status) {
+            case DiplomaticStatus::ALLIED:    statusStr = "ALIADO  "; break;
+            case DiplomaticStatus::FRIENDLY:  statusStr = "AMIGÁVEL"; break;
+            case DiplomaticStatus::NEUTRAL:   statusStr = "NEUTRO  "; break;
+            case DiplomaticStatus::COOL:      statusStr = "FRIO    "; break;
+            case DiplomaticStatus::HOSTILE:   statusStr = "HOSTIL  "; break;
+            case DiplomaticStatus::AT_WAR:    statusStr = "GUERRA! "; break;
+            case DiplomaticStatus::EMBARGO:   statusStr = "EMBARGO "; break;
+            case DiplomaticStatus::SANCTIONS: statusStr = "SANÇÕES "; break;
+            default: statusStr = "???     "; break;
+        }
+
+        std::string acordos;
+        if (rel.hasTradeAgreement)   acordos += "[Comercio]";
+        if (rel.hasMilitaryAlliance) acordos += "[Aliança] ";
+        if (rel.hasSanctions)        acordos += "[Sancoes] ";
+        if (acordos.empty()) acordos = "-";
+
+        std::cout << std::right << "║" << std::setw(2) << cid << "║ "
+                  << std::left << std::setw(16) << other.name << " ║"
+                  << std::right << std::fixed << std::setprecision(0)
+                  << std::setw(7) << rel.relations << " ║ "
+                  << statusStr << " ║ "
+                  << std::left << std::setw(18) << acordos << " ║\n";
+    }
+    std::cout << "╚══╩══════════════════╩════════╩══════════╩════════════════════╝\n";
+}
+
+// ====================================================================
+// SUBMENU: ECONOMIA
+// ====================================================================
+void menuEconomia(SimulationEngine& engine, CountryID playerId) {
+    while (true) {
+        const auto& c = engine.getWorld().getCountry(playerId);
+        auto taxP   = engine.getEconomy().getTaxPolicy(playerId);
+        auto budget = engine.getEconomy().getBudgetAllocation(playerId);
+        auto market = engine.getEconomy().getMarketIndicators(playerId);
+
+        std::cout << "\n╔═══════════════════════════════════════════════════════╗\n";
+        std::cout << "║                  GESTÃO ECONÔMICA                    ║\n";
+        std::cout << "╠═══════════════════════════════════════════════════════╣\n";
+        std::cout << std::fixed << std::setprecision(1);
+        std::cout << "║ PIB: $" << c.gdp.billions << "B"
+                  << "  |  Cresc.: " << (c.gdpGrowthRate*100) << "%"
+                  << "  |  Inflação: " << (c.inflation*100) << "%\n";
+        std::cout << "║ Desemprego: " << (c.unemploymentRate*100) << "%"
+                  << "  |  Juros: " << (c.interestRate*100) << "%"
+                  << "  |  Câmbio: " << c.exchangeRate << "\n";
+        std::cout << "║ Dívida: $" << c.publicDebt.billions << "B  ("
+                  << (c.debtToGDP*100) << "% PIB)"
+                  << "  |  Reservas: $" << c.foreignReserves.billions << "B\n";
+        std::cout << "║ Mercado: " << market.stockMarketIndex << " pts"
+                  << "  |  Confiança: " << (market.investorConfidence*100) << "%"
+                  << "  |  Rating: " << std::setprecision(2) << market.creditRating << "\n";
+        std::cout << "╠═══════════════════════════════════════════════════════╣\n";
+        std::cout << std::setprecision(1);
+        std::cout << "║ IMPOSTOS ATUAIS:\n";
+        std::cout << "║   IR Baixo: " << (taxP.incomeTaxLow*100) << "%"
+                  << "  Médio: " << (taxP.incomeTaxMid*100) << "%"
+                  << "  Alto: " << (taxP.incomeTaxHigh*100) << "%\n";
+        std::cout << "║   Corporativo: " << (taxP.corporateTax*100) << "%"
+                  << "  |  IVA/Consumo: " << (taxP.salesTax*100) << "%"
+                  << "  |  Tarifa Import: " << (taxP.importTariff*100) << "%\n";
+        std::cout << "╠═══════════════════════════════════════════════════════╣\n";
+        std::cout << "║ ORÇAMENTO:\n";
+        std::cout << "║   Defesa: " << (budget.defense*100) << "%"
+                  << "  Educação: " << (budget.education*100) << "%"
+                  << "  Saúde: " << (budget.healthcare*100) << "%\n";
+        std::cout << "║   Infraestrutura: " << (budget.infrastructure*100) << "%"
+                  << "  Previdência: " << (budget.socialWelfare*100) << "%"
+                  << "  Ciência: " << (budget.science*100) << "%\n";
+        std::cout << "╠═══════════════════════════════════════════════════════╣\n";
+        std::cout << "║ [1] Ajustar Impostos      [4] Emitir Dívida          ║\n";
+        std::cout << "║ [2] Alocar Orçamento      [5] Imprimir Dinheiro (QE) ║\n";
+        std::cout << "║ [3] Ajustar Taxa de Juros [6] Pagar Dívida           ║\n";
+        std::cout << "║ [0] Voltar                                           ║\n";
+        std::cout << "╚═══════════════════════════════════════════════════════╝\n";
+        std::cout << "Escolha: ";
+
+        int ch; std::cin >> ch;
+        if (std::cin.fail()) { std::cin.clear(); std::cin.ignore(10000,'\n'); continue; }
+
+        switch (ch) {
+            case 0: return;
+
+            case 1: { // Ajustar impostos
+                std::cout << "\n--- AJUSTAR IMPOSTOS (% : 0-100) ---\n";
+                TaxPolicy np = taxP;
+                np.incomeTaxLow   = readDouble("  IR Faixa Baixa (%)", 0, 50) / 100.0;
+                np.incomeTaxMid   = readDouble("  IR Faixa Média (%)", 0, 60) / 100.0;
+                np.incomeTaxHigh  = readDouble("  IR Faixa Alta (%)", 0, 70) / 100.0;
+                np.corporateTax   = readDouble("  Imposto Corporativo (%)", 0, 60) / 100.0;
+                np.salesTax       = readDouble("  IVA/Consumo (%)", 0, 40) / 100.0;
+                np.importTariff   = readDouble("  Tarifa de Importação (%)", 0, 50) / 100.0;
+                engine.getEconomy().setTaxPolicy(playerId, np);
+                // Atualizar campos no país diretamente também
+                auto& country = engine.getWorld().getCountry(playerId);
+                country.incomeTaxLow  = np.incomeTaxLow;
+                country.incomeTaxMid  = np.incomeTaxMid;
+                country.incomeTaxHigh = np.incomeTaxHigh;
+                country.corporateTax  = np.corporateTax;
+                country.salesTax      = np.salesTax;
+                std::cout << "✓ Política fiscal atualizada.\n";
+                break;
+            }
+
+            case 2: { // Alocar orçamento
+                std::cout << "\n--- ALOCAR ORÇAMENTO (% do total, deve somar ~100) ---\n";
+                BudgetAllocation nb = budget;
+                nb.defense       = readDouble("  Defesa (%)", 0, 50) / 100.0;
+                nb.education     = readDouble("  Educação (%)", 0, 40) / 100.0;
+                nb.healthcare    = readDouble("  Saúde (%)", 0, 40) / 100.0;
+                nb.infrastructure= readDouble("  Infraestrutura (%)", 0, 30) / 100.0;
+                nb.socialWelfare = readDouble("  Previdência Social (%)", 0, 50) / 100.0;
+                nb.science       = readDouble("  Ciência e Tecnologia (%)", 0, 20) / 100.0;
+                nb.environment   = readDouble("  Meio Ambiente (%)", 0, 15) / 100.0;
+                nb.administration= readDouble("  Administração (%)", 0, 20) / 100.0;
+                nb.debtService   = readDouble("  Serviço da Dívida (%)", 0, 30) / 100.0;
+                nb.other         = std::max(0.0, 1.0 - nb.defense - nb.education - nb.healthcare
+                                            - nb.infrastructure - nb.socialWelfare - nb.science
+                                            - nb.environment - nb.administration - nb.debtService);
+                std::cout << "  (Outros/Residual: " << (nb.other*100) << "%)\n";
+                engine.getEconomy().setBudgetAllocation(playerId, nb);
+                // Sync em campos do país
+                auto& country = engine.getWorld().getCountry(playerId);
+                country.budgetDefense       = nb.defense;
+                country.budgetEducation     = nb.education;
+                country.budgetHealthcare    = nb.healthcare;
+                country.budgetInfrastructure= nb.infrastructure;
+                country.budgetSocialWelfare = nb.socialWelfare;
+                std::cout << "✓ Orçamento atualizado.\n";
+                break;
+            }
+
+            case 3: { // Taxa de juros
+                double nova = readDouble("  Nova taxa de juros (%)", 0, 50) / 100.0;
+                engine.getEconomy().setInterestRate(playerId, nova);
+                engine.getWorld().getCountry(playerId).interestRate = nova;
+                std::cout << "✓ Taxa de juros ajustada para " << (nova*100) << "%.\n";
+                break;
+            }
+
+            case 4: { // Emitir dívida
+                double bilhoes = readDouble("  Valor a emitir (bilhões USD)", 1, 5000);
+                engine.getEconomy().issueDebt(playerId, bilhoes);
+                std::cout << "✓ Dívida de $" << bilhoes << "B emitida.\n";
+                break;
+            }
+
+            case 5: { // Imprimir dinheiro
+                double bilhoes = readDouble("  Valor a injetar (bilhões USD)", 1, 2000);
+                engine.getEconomy().printMoney(playerId, bilhoes);
+                std::cout << "⚠ $" << bilhoes << "B injetados na economia. Isso aumenta inflação!\n";
+                break;
+            }
+
+            case 6: { // Pagar dívida
+                double bilhoes = readDouble("  Valor a pagar (bilhões USD)", 1, 1000);
+                engine.getEconomy().payDebt(playerId, bilhoes);
+                std::cout << "✓ $" << bilhoes << "B da dívida pagos.\n";
+                break;
+            }
+
+            default: std::cout << "Opção inválida.\n";
+        }
+    }
+}
+
+// ====================================================================
+// SUBMENU: DIPLOMACIA
+// ====================================================================
+static const char* diplomacyTypeName(DiplomaticProposal::Type t) {
+    switch (t) {
+        case DiplomaticProposal::Type::TRADE_AGREEMENT:        return "Acordo Comercial";
+        case DiplomaticProposal::Type::MILITARY_ALLIANCE:      return "Aliança Militar";
+        case DiplomaticProposal::Type::NON_AGGRESSION_PACT:    return "Pacto de Não-Agressão";
+        case DiplomaticProposal::Type::PEACE_TREATY:           return "Tratado de Paz";
+        case DiplomaticProposal::Type::ARMS_DEAL:              return "Venda de Armas";
+        case DiplomaticProposal::Type::AID_PACKAGE:            return "Pacote de Ajuda";
+        case DiplomaticProposal::Type::SANCTIONS:              return "Impor Sanções";
+        case DiplomaticProposal::Type::LIFT_SANCTIONS:         return "Levantar Sanções";
+        case DiplomaticProposal::Type::CEASE_FIRE:             return "Cessar-Fogo";
+        case DiplomaticProposal::Type::BREAK_RELATIONS:        return "Romper Relações";
+        case DiplomaticProposal::Type::RESTORE_RELATIONS:      return "Restaurar Relações";
+        case DiplomaticProposal::Type::VISA_AGREEMENT:         return "Acordo de Vistos";
+        case DiplomaticProposal::Type::CULTURAL_EXCHANGE:      return "Intercâmbio Cultural";
+        default: return "Proposta Diplomática";
+    }
+}
+
+void menuDiplomacia(SimulationEngine& engine, CountryID playerId) {
+    while (true) {
+        printDiplomacy(engine.getWorld(), playerId);
+
+        // Ver propostas pendentes
+        auto pendentes = engine.getDiplomacy().getPendingProposals(playerId);
+        if (!pendentes.empty()) {
+            std::cout << "\n⚡ PROPOSTAS PENDENTES: " << pendentes.size() << "\n";
+            for (size_t i = 0; i < pendentes.size(); ++i) {
+                const auto& p = pendentes[i];
+                const auto& from = engine.getWorld().getCountry(p.proposer);
+                std::cout << "  [" << i << "] " << diplomacyTypeName(p.type)
+                          << " de " << from.name << " (p=" << (p.acceptanceProbability*100) << "%)\n";
+            }
+        }
+
+        std::cout << "\n[1] Enviar Proposta    [2] Responder Proposta Pendente\n";
+        std::cout << "[3] Declarar Guerra    [4] Propor Paz/Cessar-fogo\n";
+        std::cout << "[5] Impor Sanções      [6] Levantar Sanções\n";
+        std::cout << "[7] Enviar Ajuda       [8] Romper Relações\n";
+        std::cout << "[0] Voltar\n";
+        std::cout << "Escolha: ";
+
+        int ch; std::cin >> ch;
+        if (std::cin.fail()) { std::cin.clear(); std::cin.ignore(10000,'\n'); continue; }
+
+        // Helper: listar países para escolha
+        auto listarPaises = [&]() {
+            std::cout << "\n  Países disponíveis:\n";
+            for (auto cid : engine.getWorld().getAllCountryIds()) {
+                if (cid == playerId) continue;
+                const auto& co = engine.getWorld().getCountry(cid);
+                std::cout << "    [" << cid << "] " << co.name << "\n";
+            }
+        };
+
+        switch (ch) {
+            case 0: return;
+
+            case 1: { // Enviar proposta
+                listarPaises();
+                int alvo = readInt("  ID do país alvo", 1, 99);
+
+                std::cout << "\n  Tipo de proposta:\n";
+                std::cout << "  [1] Acordo Comercial        [5] Pacto Não-Agressão\n";
+                std::cout << "  [2] Aliança Militar         [6] Acordo de Vistos\n";
+                std::cout << "  [3] Pacote de Ajuda Financ. [7] Intercâmbio Cultural\n";
+                std::cout << "  [4] Venda de Armas          [8] Restaurar Relações\n";
+                int tipo = readInt("  Tipo", 1, 8);
+
+                DiplomaticProposal prop;
+                prop.proposer = playerId;
+                prop.target   = static_cast<CountryID>(alvo);
+                prop.proposedDate = engine.getCurrentDate();
+                prop.durationYears = 5;
+                switch (tipo) {
+                    case 1: prop.type = DiplomaticProposal::Type::TRADE_AGREEMENT; break;
+                    case 2: prop.type = DiplomaticProposal::Type::MILITARY_ALLIANCE; break;
+                    case 3: {
+                        prop.type = DiplomaticProposal::Type::AID_PACKAGE;
+                        double aid = readDouble("  Valor da ajuda (bilhões USD)", 0.1, 500);
+                        prop.financialValue = Money(aid);
+                        break;
+                    }
+                    case 4: prop.type = DiplomaticProposal::Type::ARMS_DEAL; break;
+                    case 5: prop.type = DiplomaticProposal::Type::NON_AGGRESSION_PACT; break;
+                    case 6: prop.type = DiplomaticProposal::Type::VISA_AGREEMENT; break;
+                    case 7: prop.type = DiplomaticProposal::Type::CULTURAL_EXCHANGE; break;
+                    case 8: prop.type = DiplomaticProposal::Type::RESTORE_RELATIONS; break;
+                    default: prop.type = DiplomaticProposal::Type::TRADE_AGREEMENT;
+                }
+                prop.description = diplomacyTypeName(prop.type);
+                double prob = engine.getDiplomacy().calculateAcceptanceProbability(prop);
+                std::cout << "  Probabilidade de aceitação: " << (prob*100) << "%\n";
+                std::cout << "  Confirmar envio? [1=Sim / 0=Não]: ";
+                int conf; std::cin >> conf;
+                if (conf == 1) {
+                    engine.getDiplomacy().sendProposal(prop);
+                    std::cout << "✓ Proposta de " << diplomacyTypeName(prop.type)
+                              << " enviada para " << engine.getWorld().getCountry(alvo).name << ".\n";
+                }
+                break;
+            }
+
+            case 2: { // Responder proposta pendente
+                if (pendentes.empty()) { std::cout << "  Nenhuma proposta pendente.\n"; break; }
+                int idx = readInt("  Número da proposta", 0, (int)pendentes.size()-1);
+                std::cout << "  Aceitar? [1=Sim / 0=Não]: ";
+                int resp; std::cin >> resp;
+                engine.getDiplomacy().respondToProposal(idx, resp == 1);
+                std::cout << (resp==1 ? "✓ Proposta aceita.\n" : "✗ Proposta recusada.\n");
+                break;
+            }
+
+            case 3: { // Declarar guerra
+                listarPaises();
+                int alvo = readInt("  ID do país alvo", 1, 99);
+                std::cout << "  ⚠ Declarar guerra tem consequências diplomáticas graves!\n";
+                std::cout << "  Confirmar? [1=Sim / 0=Não]: ";
+                int conf; std::cin >> conf;
+                if (conf == 1) {
+                    std::string cb = "Razões de Estado";
+                    engine.getDiplomacy().declareWar(playerId, alvo, cb);
+                    std::cout << "⚔ Guerra declarada contra "
+                              << engine.getWorld().getCountry(alvo).name << "!\n";
+                }
+                break;
+            }
+
+            case 4: { // Propor paz
+                listarPaises();
+                int alvo = readInt("  ID do país alvo", 1, 99);
+                engine.getDiplomacy().proposePeace(playerId, alvo);
+                std::cout << "🕊 Proposta de paz enviada para "
+                          << engine.getWorld().getCountry(alvo).name << ".\n";
+                break;
+            }
+
+            case 5: { // Sancionar
+                listarPaises();
+                int alvo = readInt("  ID do país a sancionar", 1, 99);
+                engine.getDiplomacy().declareSanctions(playerId, alvo);
+                std::cout << "✓ Sanções impostas sobre "
+                          << engine.getWorld().getCountry(alvo).name << ".\n";
+                break;
+            }
+
+            case 6: { // Levantar sanções
+                listarPaises();
+                int alvo = readInt("  ID do país", 1, 99);
+                engine.getDiplomacy().liftSanctions(playerId, alvo);
+                std::cout << "✓ Sanções levantadas sobre "
+                          << engine.getWorld().getCountry(alvo).name << ".\n";
+                break;
+            }
+
+            case 7: { // Ajuda financeira
+                listarPaises();
+                int alvo = readInt("  ID do país destinatário", 1, 99);
+                double valor = readDouble("  Valor (bilhões USD)", 0.1, 200);
+                engine.getDiplomacy().sendForeignAid(playerId, alvo, Money(valor));
+                std::cout << "✓ $" << valor << "B enviados para "
+                          << engine.getWorld().getCountry(alvo).name << ".\n";
+                break;
+            }
+
+            case 8: { // Romper relações
+                listarPaises();
+                int alvo = readInt("  ID do país", 1, 99);
+                std::cout << "  ⚠ Isso encerrará relações diplomáticas! Confirmar? [1=Sim]: ";
+                int conf; std::cin >> conf;
+                if (conf == 1) {
+                    engine.getDiplomacy().breakDiplomaticRelations(playerId, alvo);
+                    std::cout << "✓ Relações rompidas com "
+                              << engine.getWorld().getCountry(alvo).name << ".\n";
+                }
+                break;
+            }
+
+            default: std::cout << "Opção inválida.\n";
+        }
+    }
+}
+
+// ====================================================================
+// SUBMENU: MILITAR
+// ====================================================================
+static const char* branchName(MilitaryBranch b) {
+    switch (b) {
+        case MilitaryBranch::ARMY:          return "Exército";
+        case MilitaryBranch::NAVY:          return "Marinha";
+        case MilitaryBranch::AIR_FORCE:     return "Força Aérea";
+        case MilitaryBranch::MARINES:       return "Fuzileiros";
+        case MilitaryBranch::SPECIAL_FORCES:return "Forças Esp.";
+        case MilitaryBranch::CYBER_COMMAND: return "Cyber";
+        default: return "Outro";
+    }
+}
+
+void menuMilitar(SimulationEngine& engine, CountryID playerId) {
+    while (true) {
+        const auto& c = engine.getWorld().getCountry(playerId);
+        auto forces    = engine.getMilitary().getForces(playerId);
+        auto conflitos = engine.getMilitary().getActiveConflicts();
+        auto milPower  = engine.getMilitary().getMilitaryPower(playerId);
+
+        std::cout << "\n╔════════════════════════════════════════════════╗\n";
+        std::cout << "║             FORÇAS ARMADAS                    ║\n";
+        std::cout << "╠════════════════════════════════════════════════╣\n";
+        std::cout << std::fixed << std::setprecision(0);
+        std::cout << "║ Efetivo Ativo:     " << std::setw(10) << forces.activePersonnel << "         ║\n";
+        std::cout << "║ Reservistas:       " << std::setw(10) << forces.reservePersonnel << "         ║\n";
+        std::cout << "║ Ogivas Nucleares:  " << std::setw(10) << forces.nuclearWarheads  << "         ║\n";
+        std::cout << std::setprecision(2);
+        std::cout << "║ Índice Poder Mil.: " << std::setw(10) << milPower << "         ║\n";
+        std::cout << "║ Orçamento Defesa:  " << std::setw(9) << (c.budgetDefense*100) << "% orçamento  ║\n";
+        std::cout << "╠════════════════════════════════════════════════╣\n";
+
+        // Conflitos ativos
+        bool emGuerra = false;
+        for (const auto& conf : conflitos) {
+            bool parteDe = false;
+            for (auto cid : conf.attackers)  if (cid == playerId) parteDe = true;
+            for (auto cid : conf.defenders)  if (cid == playerId) parteDe = true;
+            if (parteDe) {
+                emGuerra = true;
+                std::cout << "║ ⚔ CONFLITO ATIVO: " << std::left << std::setw(27) << conf.name << "║\n";
+                std::cout << "║   Progresso frente: " << std::right << conf.frontProgress
+                          << "  Escalada: " << conf.escalationLevel << "           ║\n";
+            }
+        }
+        if (!emGuerra) std::cout << "║ Sem conflitos ativos.                          ║\n";
+
+        std::cout << "╠════════════════════════════════════════════════╣\n";
+        std::cout << "║ [1] Criar Unidade Militar                     ║\n";
+        std::cout << "║ [2] Mobilizar Reservistas                     ║\n";
+        std::cout << "║ [3] Desmobilizar Tropas                       ║\n";
+        std::cout << "║ [4] Ajustar Orçamento de Defesa               ║\n";
+        std::cout << "║ [5] Lançar Operação Militar                   ║\n";
+        std::cout << "║ [6] Ver Todas as Unidades                     ║\n";
+        std::cout << "║ [0] Voltar                                    ║\n";
+        std::cout << "╚════════════════════════════════════════════════╝\n";
+        std::cout << "Escolha: ";
+
+        int ch; std::cin >> ch;
+        if (std::cin.fail()) { std::cin.clear(); std::cin.ignore(10000,'\n'); continue; }
+
+        switch (ch) {
+            case 0: return;
+
+            case 1: { // Criar unidade
+                std::cout << "\n--- CRIAR NOVA UNIDADE ---\n";
+                std::cout << "  Ramos: [1] Exército  [2] Marinha  [3] Força Aérea\n";
+                std::cout << "         [4] Fuzileiros  [5] Forças Especiais  [6] Cyber\n";
+                int ramo = readInt("  Ramo", 1, 6);
+                MilitaryBranch branch;
+                switch (ramo) {
+                    case 1: branch = MilitaryBranch::ARMY; break;
+                    case 2: branch = MilitaryBranch::NAVY; break;
+                    case 3: branch = MilitaryBranch::AIR_FORCE; break;
+                    case 4: branch = MilitaryBranch::MARINES; break;
+                    case 5: branch = MilitaryBranch::SPECIAL_FORCES; break;
+                    case 6: branch = MilitaryBranch::CYBER_COMMAND; break;
+                    default: branch = MilitaryBranch::ARMY;
+                }
+                int pessoal = readInt("  Efetivo (pessoas)", 100, 50000);
+                std::string nome = branchName(branch);
+                nome += " Unidade";
+                UnitID uid = engine.getMilitary().createUnit(playerId, branch, nome, pessoal);
+                std::cout << "✓ Unidade " << nome << " criada (ID=" << uid << ") com "
+                          << pessoal << " efetivos.\n";
+                break;
+            }
+
+            case 2: { // Mobilizar reservistas
+                int qtd = readInt("  Quantos reservistas mobilizar", 1000, 500000);
+                engine.getMilitary().conscript(playerId, qtd);
+                std::cout << "✓ " << qtd << " reservistas mobilizados.\n";
+                break;
+            }
+
+            case 3: { // Desmobilizar
+                int qtd = readInt("  Quantos tropas desmobilizar", 1000, 200000);
+                engine.getMilitary().demobilize(playerId, qtd);
+                std::cout << "✓ " << qtd << " tropas desmobilizadas.\n";
+                break;
+            }
+
+            case 4: { // Orçamento defesa
+                double pct = readDouble("  % do orçamento para defesa", 0, 50);
+                engine.getMilitary().setMilitaryBudget(playerId, pct / 100.0);
+                engine.getWorld().getCountry(playerId).budgetDefense = pct / 100.0;
+                std::cout << "✓ Orçamento de defesa: " << pct << "% do orçamento total.\n";
+                break;
+            }
+
+            case 5: { // Lançar operação
+                std::cout << "\n--- OPERAÇÃO MILITAR ---\n";
+                std::cout << "  Tipos: [1] Patrulha  [2] Ofensiva  [3] Defensiva\n";
+                std::cout << "         [4] Bloqueio Naval  [5] Ataque Aéreo  [6] Ops Especiais\n";
+                int opTipo = readInt("  Tipo", 1, 6);
+                MilitaryOperation::Type tipo;
+                switch (opTipo) {
+                    case 1: tipo = MilitaryOperation::Type::PATROL; break;
+                    case 2: tipo = MilitaryOperation::Type::OFFENSIVE; break;
+                    case 3: tipo = MilitaryOperation::Type::DEFENSIVE; break;
+                    case 4: tipo = MilitaryOperation::Type::BLOCKADE; break;
+                    case 5: tipo = MilitaryOperation::Type::AIRSTRIKE; break;
+                    case 6: tipo = MilitaryOperation::Type::SPECIAL_OPS; break;
+                    default: tipo = MilitaryOperation::Type::PATROL;
+                }
+                GeoCoord alvo{0.0, 0.0};
+                std::string nomOp = "Operação Alfa";
+                OperationID opId = engine.getMilitary().launchOperation(
+                    playerId, tipo, {}, alvo, nomOp);
+                std::cout << "✓ Operação lançada (ID=" << opId << ").\n";
+                break;
+            }
+
+            case 6: { // Ver unidades
+                auto unidades = engine.getMilitary().getUnits(playerId);
+                if (unidades.empty()) {
+                    std::cout << "  Nenhuma unidade regular criada. Use [1] para criar.\n";
+                } else {
+                    std::cout << "\n  ID   | Nome              | Ramo       | Efetivo | Força\n";
+                    std::cout << "  -----|-------------------|------------|---------|------\n";
+                    for (const auto& u : unidades) {
+                        std::cout << "  " << std::setw(4) << u.id << " | "
+                                  << std::left << std::setw(17) << u.name << " | "
+                                  << std::setw(10) << branchName(u.branch) << " | "
+                                  << std::right << std::setw(7) << u.personnel << " | "
+                                  << std::setprecision(2) << u.strength << "\n";
+                    }
+                }
+                break;
+            }
+
+            default: std::cout << "Opção inválida.\n";
+        }
+    }
+}
+
+// ====================================================================
+// SUBMENU: LEGISLAÇÃO
+// ====================================================================
+static const char* lawCategoryName(LawCategory c) {
+    switch (c) {
+        case LawCategory::ECONOMIC:        return "Econômica";
+        case LawCategory::LABOR:           return "Trabalhista";
+        case LawCategory::PENSION:         return "Previdência";
+        case LawCategory::ENVIRONMENTAL:   return "Ambiental";
+        case LawCategory::EDUCATION:       return "Educação";
+        case LawCategory::CRIMINAL:        return "Criminal";
+        case LawCategory::IMMIGRATION:     return "Imigração";
+        case LawCategory::PUBLIC_SECURITY: return "Segurança Pública";
+        case LawCategory::CIVIL_RIGHTS:    return "Direitos Civis";
+        case LawCategory::HEALTHCARE:      return "Saúde";
+        case LawCategory::TAX:             return "Tributária";
+        case LawCategory::TRADE:           return "Comércio";
+        case LawCategory::MILITARY:        return "Militar";
+        case LawCategory::MEDIA:           return "Mídia";
+        case LawCategory::TECHNOLOGY:      return "Tecnologia";
+        case LawCategory::HOUSING:         return "Habitação";
+        case LawCategory::TRANSPORTATION:  return "Transporte";
+        case LawCategory::ENERGY:          return "Energia";
+        case LawCategory::AGRICULTURE:     return "Agricultura";
+        case LawCategory::FOREIGN_AFFAIRS: return "Exterior";
+        default: return "Geral";
+    }
+}
+
+static const char* lawStatusName(Law::Status s) {
+    switch (s) {
+        case Law::Status::PROPOSED:     return "PROPOSTO";
+        case Law::Status::IN_COMMITTEE: return "EM COMITÊ";
+        case Law::Status::DEBATING:     return "EM DEBATE";
+        case Law::Status::VOTING:       return "EM VOTAÇÃO";
+        case Law::Status::APPROVED:     return "APROVADO";
+        case Law::Status::VETOED:       return "VETADO";
+        case Law::Status::ACTIVE:       return "VIGENTE";
+        case Law::Status::REPEALED:     return "REVOGADO";
+        case Law::Status::EXPIRED:      return "EXPIRADO";
+        default: return "???";
+    }
+}
+
+void menuLeis(SimulationEngine& engine, CountryID playerId) {
+    while (true) {
+        auto leis_ativas   = engine.getLaws().getActiveLaws(playerId);
+        auto leis_pendentes= engine.getLaws().getPendingLaws(playerId);
+
+        std::cout << "\n╔══════════════════════════════════════════════════════╗\n";
+        std::cout << "║                   LEGISLAÇÃO                        ║\n";
+        std::cout << "╠══════════════════════════════════════════════════════╣\n";
+        std::cout << "║ Leis vigentes: " << leis_ativas.size()
+                  << "   |   Em tramitação: " << leis_pendentes.size() << "\n";
+
+        if (!leis_ativas.empty()) {
+            std::cout << "╠══ LEIS VIGENTES ═══════════════════════════════════╣\n";
+            for (const auto& lei : leis_ativas) {
+                std::cout << "║  [" << lei.id << "] " << std::left << std::setw(28) << lei.name
+                          << " | " << std::setw(15) << lawCategoryName(lei.category) << "\n";
+            }
+        }
+
+        if (!leis_pendentes.empty()) {
+            std::cout << "╠══ EM TRAMITAÇÃO ═══════════════════════════════════╣\n";
+            for (const auto& lei : leis_pendentes) {
+                std::cout << "║  [" << lei.id << "] " << std::left << std::setw(28) << lei.name
+                          << " | " << lawStatusName(lei.status)
+                          << " (apoio: " << std::setprecision(0) << (lei.parliamentarySupport*100) << "%)\n";
+            }
+        }
+
+        std::cout << "╠══════════════════════════════════════════════════════╣\n";
+        std::cout << "║ [1] Propor Nova Lei (de template)                   ║\n";
+        std::cout << "║ [2] Forçar Votação (push parlamentar)               ║\n";
+        std::cout << "║ [3] Revogar Lei Vigente                             ║\n";
+        std::cout << "║ [4] Ver Detalhe de Uma Lei                         ║\n";
+        std::cout << "║ [0] Voltar                                          ║\n";
+        std::cout << "╚══════════════════════════════════════════════════════╝\n";
+        std::cout << "Escolha: ";
+
+        int ch; std::cin >> ch;
+        if (std::cin.fail()) { std::cin.clear(); std::cin.ignore(10000,'\n'); continue; }
+
+        switch (ch) {
+            case 0: return;
+
+            case 1: { // Propor lei a partir de template
+                std::cout << "\n  Categorias:\n";
+                std::cout << "  [1]  Econômica           [8]  Segurança Pública\n";
+                std::cout << "  [2]  Trabalhista         [9]  Direitos Civis\n";
+                std::cout << "  [3]  Previdência         [10] Saúde\n";
+                std::cout << "  [4]  Ambiental           [11] Tributária\n";
+                std::cout << "  [5]  Educação            [12] Comércio\n";
+                std::cout << "  [6]  Criminal            [13] Tecnologia\n";
+                std::cout << "  [7]  Imigração           [14] Energia\n";
+                int catNum = readInt("  Categoria", 1, 14);
+
+                LawCategory cats[] = {
+                    LawCategory::ECONOMIC, LawCategory::LABOR, LawCategory::PENSION,
+                    LawCategory::ENVIRONMENTAL, LawCategory::EDUCATION, LawCategory::CRIMINAL,
+                    LawCategory::IMMIGRATION, LawCategory::PUBLIC_SECURITY, LawCategory::CIVIL_RIGHTS,
+                    LawCategory::HEALTHCARE, LawCategory::TAX, LawCategory::TRADE,
+                    LawCategory::TECHNOLOGY, LawCategory::ENERGY
+                };
+                LawCategory catEscolhida = cats[catNum - 1];
+
+                auto templates = engine.getLaws().getAvailableLawTemplates(catEscolhida);
+                if (templates.empty()) {
+                    std::cout << "  Nenhum template disponível para esta categoria.\n";
+                    break;
+                }
+                std::cout << "\n  Templates disponíveis:\n";
+                for (size_t i = 0; i < templates.size(); ++i) {
+                    std::cout << "  [" << i << "] " << templates[i].name << "\n";
+                    std::cout << "       " << templates[i].description << "\n";
+                    std::cout << "       Efeito PIB: "
+                              << std::showpos << (templates[i].shortTermEffects.gdpGrowth*100) << "%"
+                              << "  Emprego: " << (templates[i].shortTermEffects.unemployment*100) << "%"
+                              << "  Inflação: " << (templates[i].shortTermEffects.inflation*100) << "%\n"
+                              << std::noshowpos;
+                }
+                int tIdx = readInt("  Índice do template", 0, (int)templates.size()-1);
+                Law lei  = templates[tIdx];
+                lei.country = playerId;
+                lei.proposedDate = engine.getCurrentDate();
+                double suporte = engine.getLaws().calculateLawSupport(lei, playerId);
+                std::cout << "  Suporte parlamentar estimado: " << (suporte*100) << "%\n";
+                std::cout << "  Confirmar proposição? [1=Sim / 0=Não]: ";
+                int conf; std::cin >> conf;
+                if (conf == 1) {
+                    LawID id = engine.getLaws().proposeLaw(playerId, lei);
+                    std::cout << "✓ Lei \"" << lei.name << "\" proposta (ID=" << id << ").\n";
+                }
+                break;
+            }
+
+            case 2: { // Forçar votação
+                if (leis_pendentes.empty()) { std::cout << "  Sem leis em tramitação.\n"; break; }
+                int lid = readInt("  ID da lei", 1, 9999);
+                bool ok = engine.getLaws().pushLawThroughParliament(static_cast<LawID>(lid));
+                std::cout << (ok ? "✓ Votação forçada com sucesso.\n" : "✗ Falhou (sem apoio suficiente).\n");
+                break;
+            }
+
+            case 3: { // Revogar
+                if (leis_ativas.empty()) { std::cout << "  Sem leis vigentes para revogar.\n"; break; }
+                int lid = readInt("  ID da lei a revogar", 1, 9999);
+                std::cout << "  ⚠ Revogar lei? Pode reduzir aprovação. Confirmar? [1=Sim]: ";
+                int conf; std::cin >> conf;
+                if (conf == 1) {
+                    engine.getLaws().revokeLaw(playerId, static_cast<LawID>(lid));
+                    std::cout << "✓ Lei " << lid << " revogada.\n";
+                }
+                break;
+            }
+
+            case 4: { // Detalhar lei
+                int lid = readInt("  ID da lei", 1, 9999);
+                try {
+                    auto lei = engine.getLaws().getLaw(static_cast<LawID>(lid));
+                    std::cout << "\n═══ " << lei.name << " ═══\n";
+                    std::cout << "Descrição: " << lei.description << "\n";
+                    std::cout << "Categoria:  " << lawCategoryName(lei.category) << "\n";
+                    std::cout << "Status:     " << lawStatusName(lei.status) << "\n";
+                    std::cout << "Suporte Parlam.: " << (lei.parliamentarySupport*100) << "%\n";
+                    std::cout << "Suporte Público: " << (lei.publicSupport*100) << "%\n";
+                    std::cout << "Efeitos Curto Prazo:\n";
+                    std::cout << "  PIB: " << std::showpos << (lei.shortTermEffects.gdpGrowth*100)
+                              << "%  Inflação: " << (lei.shortTermEffects.inflation*100)
+                              << "%  Desemprego: " << (lei.shortTermEffects.unemployment*100) << "%\n"
+                              << std::noshowpos;
+                } catch (...) {
+                    std::cout << "  Lei " << lid << " não encontrada.\n";
+                }
+                break;
+            }
+
+            default: std::cout << "Opção inválida.\n";
+        }
+    }
+}
+
+// ====================================================================
+// SUBMENU: INTELIGÊNCIA
+// ====================================================================
+static const char* opTypeName(CovertOperation::Type t) {
+    switch (t) {
+        case CovertOperation::Type::ESPIONAGE:              return "Espionagem";
+        case CovertOperation::Type::SABOTAGE:               return "Sabotagem";
+        case CovertOperation::Type::ASSASSINATION:          return "Eliminação de Alvo";
+        case CovertOperation::Type::PROPAGANDA:             return "Propaganda";
+        case CovertOperation::Type::ELECTION_INTERFERENCE:  return "Interferência Eleitoral";
+        case CovertOperation::Type::COUP_SUPPORT:           return "Apoio a Golpe";
+        case CovertOperation::Type::REBEL_FUNDING:          return "Financiamento Rebelde";
+        case CovertOperation::Type::CYBER_ATTACK:           return "Ataque Cibernético";
+        case CovertOperation::Type::COUNTER_INTELLIGENCE:   return "Contra-Inteligência";
+        case CovertOperation::Type::DISINFORMATION:         return "Desinformação";
+        case CovertOperation::Type::BLACKMAIL:              return "Chantagem";
+        case CovertOperation::Type::ECONOMIC_WARFARE:       return "Guerra Econômica Secreta";
+        default: return "Operação";
+    }
+}
+
+void menuInteligencia(SimulationEngine& engine, CountryID playerId) {
+    while (true) {
+        auto agency  = engine.getIntelligence().getAgency(playerId);
+        auto ops     = engine.getIntelligence().getActiveOperations(playerId);
+        auto reports = engine.getIntelligence().getRecentReports(playerId, 60);
+
+        std::cout << "\n╔════════════════════════════════════════════════════╗\n";
+        std::cout << "║              SERVIÇO DE INTELIGÊNCIA               ║\n";
+        std::cout << "╠════════════════════════════════════════════════════╣\n";
+        std::cout << std::fixed << std::setprecision(2);
+        std::cout << "║ Agência: " << std::left << std::setw(36) << agency.name << " ║\n";
+        std::cout << "║ Capacidade: " << std::right << std::setw(5) << (agency.capability*100) << "%"
+                  << "  |  Contra-Intel: " << std::setw(5) << (agency.counterIntel*100) << "%\n";
+        std::cout << "║ HUMINT: " << std::setw(5) << (agency.humanIntel*100) << "%"
+                  << "  SIGINT: " << std::setw(5) << (agency.signalIntel*100) << "%"
+                  << "  Cyber: " << std::setw(5) << (agency.cyberCapability*100) << "%\n";
+        std::cout << "║ Agentes: " << std::setw(6) << agency.operativeCount
+                  << "  |  Orçamento: $" << std::setw(6) << agency.budget << "B\n";
+        std::cout << "║ Sigilo: " << std::setw(5) << (agency.secrecy*100) << "% chance de não ser detectado\n";
+
+        if (!ops.empty()) {
+            std::cout << "╠══ OPERAÇÕES ATIVAS ══════════════════════════════╣\n";
+            for (const auto& op : ops) {
+                const auto& alvo = engine.getWorld().getCountry(op.target);
+                int pct = op.daysToComplete > 0 ? (op.daysElapsed * 100 / op.daysToComplete) : 100;
+                std::cout << "║  ► " << std::left << std::setw(16) << op.codeName
+                          << " → " << std::setw(14) << alvo.name
+                          << " [" << std::setw(22) << opTypeName(op.type) << "]"
+                          << " " << pct << "%%\n";
+            }
+        }
+
+        if (!reports.empty()) {
+            std::cout << "╠══ RELATÓRIOS RECENTES ═══════════════════════════╣\n";
+            int shown = 0;
+            for (const auto& rep : reports) {
+                if (shown >= 4) break;
+                const auto& about = engine.getWorld().getCountry(rep.about);
+                std::cout << "║  📄 " << std::left << std::setw(14) << about.name << " | "
+                          << rep.content.substr(0, 40) << "\n";
+                ++shown;
+            }
+        }
+
+        std::cout << "╠════════════════════════════════════════════════════╣\n";
+        std::cout << "║ [1] Lançar Operação Encoberta                     ║\n";
+        std::cout << "║ [2] Cancelar Operação                             ║\n";
+        std::cout << "║ [3] Ajustar Orçamento de Inteligência             ║\n";
+        std::cout << "║ [4] Reforçar Contra-Inteligência                  ║\n";
+        std::cout << "║ [5] Recrutar Agentes                               ║\n";
+        std::cout << "║ [6] Espionar País (ver dados reais)               ║\n";
+        std::cout << "║ [0] Voltar                                        ║\n";
+        std::cout << "╚════════════════════════════════════════════════════╝\n";
+        std::cout << "Escolha: ";
+
+        int ch; std::cin >> ch;
+        if (std::cin.fail()) { std::cin.clear(); std::cin.ignore(10000,'\n'); continue; }
+
+        switch (ch) {
+            case 0: return;
+
+            case 1: { // Lançar operação
+                std::cout << "\n  Países alvo:\n";
+                for (auto cid : engine.getWorld().getAllCountryIds()) {
+                    if (cid == playerId) continue;
+                    std::cout << "    [" << cid << "] " << engine.getWorld().getCountry(cid).name << "\n";
+                }
+                int alvoId = readInt("  ID do país alvo", 1, 99);
+
+                std::cout << "\n  Tipos de operação:\n";
+                std::cout << "  [1] Espionagem          [5] Interferência Eleitoral\n";
+                std::cout << "  [2] Sabotagem           [6] Apoio a Golpe\n";
+                std::cout << "  [3] Propaganda          [7] Ataque Cibernético\n";
+                std::cout << "  [4] Desinformação       [8] Guerra Econômica Secreta\n";
+                int tipoNum = readInt("  Tipo", 1, 8);
+                CovertOperation::Type tipos[] = {
+                    CovertOperation::Type::ESPIONAGE,
+                    CovertOperation::Type::SABOTAGE,
+                    CovertOperation::Type::PROPAGANDA,
+                    CovertOperation::Type::DISINFORMATION,
+                    CovertOperation::Type::ELECTION_INTERFERENCE,
+                    CovertOperation::Type::COUP_SUPPORT,
+                    CovertOperation::Type::CYBER_ATTACK,
+                    CovertOperation::Type::ECONOMIC_WARFARE
+                };
+                CovertOperation::Type tipo = tipos[tipoNum - 1];
+
+                std::string codinome = "Op-" + std::to_string(alvoId) + "-" + std::to_string(tipoNum);
+                std::cout << "  Codinome sugerido: " << codinome << "\n";
+                std::cout << "  ⚠ Taxa de descoberta estimada: "
+                          << std::setprecision(0) << (agency.secrecy < 0.5 ? 50 : (1.0 - agency.secrecy)*100)
+                          << "%\n";
+                std::cout << "  Confirmar? [1=Sim / 0=Não]: ";
+                int conf; std::cin >> conf;
+                if (conf == 1) {
+                    OperationID opId = engine.getIntelligence().launchOperation(
+                        playerId, tipo, static_cast<CountryID>(alvoId), codinome);
+                    std::cout << "✓ Operação " << codinome << " lançada (ID=" << opId << ").\n";
+                    std::cout << "  Alvo: " << engine.getWorld().getCountry(alvoId).name << "\n";
+                }
+                break;
+            }
+
+            case 2: { // Cancelar operação
+                if (ops.empty()) { std::cout << "  Sem operações ativas.\n"; break; }
+                std::cout << "  Operações:\n";
+                for (const auto& op : ops)
+                    std::cout << "    [" << op.id << "] " << op.codeName
+                              << " (" << opTypeName(op.type) << ")\n";
+                int oid = readInt("  ID da operação a cancelar", 1, 9999);
+                engine.getIntelligence().cancelOperation(static_cast<OperationID>(oid));
+                std::cout << "✓ Operação " << oid << " cancelada.\n";
+                break;
+            }
+
+            case 3: { // Orçamento
+                double bilhoes = readDouble("  Orçamento de inteligência (bilhões USD/ano)", 0.1, 100);
+                engine.getIntelligence().setIntelBudget(playerId, bilhoes);
+                std::cout << "✓ Orçamento de inteligência: $" << bilhoes << "B/ano.\n";
+                break;
+            }
+
+            case 4: { // Contra-inteligência
+                engine.getIntelligence().increaseCounterIntelligence(playerId);
+                std::cout << "✓ Capacidade de contra-inteligência reforçada.\n";
+                break;
+            }
+
+            case 5: { // Recrutar agentes
+                int qtd = readInt("  Quantos agentes recrutar", 1, 500);
+                engine.getIntelligence().recruitOperatives(playerId, qtd);
+                std::cout << "✓ " << qtd << " agentes recrutados.\n";
+                break;
+            }
+
+            case 6: { // Espionar (ver dados de outro país)
+                std::cout << "\n  Países:\n";
+                for (auto cid : engine.getWorld().getAllCountryIds()) {
+                    if (cid == playerId) continue;
+                    std::cout << "    [" << cid << "] " << engine.getWorld().getCountry(cid).name << "\n";
+                }
+                int alvoId = readInt("  ID do país", 1, 99);
+                bool temIntel = engine.getIntelligence().hasIntelOn(playerId, alvoId);
+                const auto& alvo = engine.getWorld().getCountry(alvoId);
+                std::cout << "\n═══ INTEL: " << alvo.name << " ═══\n";
+                if (temIntel) {
+                    std::cout << "  PIB: $" << alvo.gdp.billions << "B"
+                              << "  |  Cresc: " << (alvo.gdpGrowthRate*100) << "%\n";
+                    std::cout << "  Militar: " << alvo.military.activePersonnel << " efetivos"
+                              << "  |  Nuclear: " << alvo.military.nuclearWarheads << "\n";
+                    std::cout << "  Aprovação: " << (alvo.governmentApproval*100) << "%"
+                              << "  |  Estab: " << (alvo.internalStability*100) << "%\n";
+                    std::cout << "  Democracia: " << (alvo.democracy*100) << "%"
+                              << "  |  Corrupção: " << (alvo.corruption*100) << "%\n";
+                } else {
+                    // Dados com ruído se não há intel
+                    double noise = (double)rand()/RAND_MAX * 0.2 - 0.1;
+                    std::cout << "  (Dados de inteligência limitada — margem de erro ~10%)\n";
+                    std::cout << "  PIB estimado: $" << (alvo.gdp.billions * (1+noise)) << "B\n";
+                    std::cout << "  Militar estimado: "
+                              << (int)(alvo.military.activePersonnel * (1+noise)) << " efetivos\n";
+                    std::cout << "  Lance operações de espionagem para dados mais precisos.\n";
+                }
+                break;
+            }
+
+            default: std::cout << "Opção inválida.\n";
+        }
+    }
+}
+
+// ====================================================================
+// Programa principal
+// ====================================================================
+int main(int argc, char* argv[]) {
+    printHeader();
+
+    SimulationConfig config;
+    config.difficulty = Difficulty::NORMAL;
+    config.speed = GameSpeed::PAUSED;
+    config.randomSeed = 42;
+    config.enableModding = false;
+
+    SimulationEngine engine;
+    if (!engine.initialize(config)) {
+        std::cerr << "ERRO: Falha ao inicializar o motor de simulação!\n";
+        return 1;
+    }
+
+    createDemoWorld(engine.getWorld());
+
+    CountryID playerId = engine.getWorld().getPlayerCountry();
+
+    std::cout << "\n✓ Motor de simulação inicializado com sucesso!";
+    std::cout << "\n✓ " << engine.getWorld().getCountryCount() << " países carregados.";
+    std::cout << "\n✓ Você controla: " << engine.getWorld().getCountry(playerId).name;
+    std::cout << "\n✓ Data inicial: " << engine.getCurrentDate().year << "/"
+              << (int)engine.getCurrentDate().month << "/" << (int)engine.getCurrentDate().day;
+    std::cout << "\n";
+
+    bool running = true;
+    while (running) {
+        printCountryDashboard(engine.getWorld(), playerId);
+        printMenu(engine.getCurrentDate());
+
+        int choice;
+        std::cin >> choice;
+
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            continue;
+        }
+
+        switch (choice) {
+            case 0:
+                running = false;
+                break;
+
+            case 1:
+                printCountryDashboard(engine.getWorld(), playerId);
+                break;
+
+            case 2:
+                menuEconomia(engine, playerId);
+                break;
+
+            case 3:
+                menuDiplomacia(engine, playerId);
+                break;
+
+            case 4:
+                menuMilitar(engine, playerId);
+                break;
+
+            case 5:
+                menuLeis(engine, playerId);
+                break;
+
+            case 6:
+                menuInteligencia(engine, playerId);
+                break;
+
+            case 7:
+                printWorldRanking(engine.getWorld());
+                break;
+
+            case 8: {
+                std::cout << "\nAvançando 1 dia...\n";
+                for (int h = 0; h < 24; ++h) engine.update(1.0 / 24.0);
+                auto d = engine.getCurrentDate();
+                std::cout << "Data: " << d.year << "/" << (int)d.month << "/" << (int)d.day << "\n";
+                break;
+            }
+
+            case 9: {
+                std::cout << "\nAvançando 1 mês...\n";
+                for (int day = 0; day < 30; ++day)
+                    for (int h = 0; h < 24; ++h) engine.update(1.0 / 24.0);
+                auto d = engine.getCurrentDate();
+                std::cout << "Data: " << d.year << "/" << (int)d.month << "/" << (int)d.day << "\n";
+                break;
+            }
+
+            case 10: {
+                std::cout << "\nAvançando 1 ano...\n";
+                for (int day = 0; day < 365; ++day)
+                    for (int h = 0; h < 24; ++h) engine.update(1.0 / 24.0);
+                auto d = engine.getCurrentDate();
+                std::cout << "Data: " << d.year << "/" << (int)d.month << "/" << (int)d.day << "\n";
+                break;
+            }
+
+            default:
+                std::cout << "Opção inválida.\n";
+        }
+    }
+
+    engine.shutdown();
+    std::cout << "\nSimulação encerrada. Obrigado por jogar GPS!\n";
+    return 0;
+}
+
