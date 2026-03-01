@@ -73,6 +73,25 @@ std::string GameUI::fmtPop(double millions) const {
 // Rendering helpers
 // ============================================================
 
+// Word-wrap manual — paragraph() do FTXUI não propaga constraints nesta versão
+static Element wrapText(const std::string& str, int maxWidth, Decorator deco) {
+    Elements lines;
+    std::istringstream ss(str);
+    std::string word, line;
+    while (ss >> word) {
+        if (!line.empty() && (int)(line.size() + 1 + word.size()) > maxWidth) {
+            lines.push_back(text(line) | deco);
+            line = word;
+        } else {
+            if (!line.empty()) line += ' ';
+            line += word;
+        }
+    }
+    if (!line.empty()) lines.push_back(text(line) | deco);
+    if (lines.empty()) lines.push_back(text("") | deco);
+    return vbox(std::move(lines));
+}
+
 Element GameUI::renderStatBox(const std::string& label, const std::string& value, Color c) {
     return vbox({
         text(" " + label) | dim,
@@ -1632,7 +1651,7 @@ Component GameUI::createLawsTab() {
                 detailBox = vbox({
                     text(" " + t.name + " ") | bold | color(Color::Cyan) | hcenter,
                     separator(),
-                    paragraph(t.description) | dim,
+                    wrapText(t.description, 72, dim),
                     separator(),
                     text(" EFEITOS CURTO PRAZO ") | bold | color(Color::Yellow),
                     hbox({
@@ -1642,6 +1661,7 @@ Component GameUI::createLawsTab() {
                         text(fmtEff(t.shortTermEffects.inflation)) | color(effColor(-t.shortTermEffects.inflation)),
                         text("  Desempr: "),
                         text(fmtEff(t.shortTermEffects.unemployment)) | color(effColor(-t.shortTermEffects.unemployment)),
+                        filler(),
                     }),
                     hbox({
                         text("Receita: "),
@@ -1650,6 +1670,7 @@ Component GameUI::createLawsTab() {
                         text(fmtEff(t.shortTermEffects.corruption)) | color(effColor(-t.shortTermEffects.corruption)),
                         text("  Felicid: "),
                         text(fmtEff(t.shortTermEffects.happiness)) | color(effColor(t.shortTermEffects.happiness)),
+                        filler(),
                     }),
                     hbox({
                         text("Estab: "),
@@ -1658,6 +1679,7 @@ Component GameUI::createLawsTab() {
                         text(fmtEff(t.shortTermEffects.freedom)) | color(effColor(t.shortTermEffects.freedom)),
                         text("  Poluição: "),
                         text(fmtEff(t.shortTermEffects.pollution)) | color(effColor(-t.shortTermEffects.pollution)),
+                        filler(),
                     }),
                     separator(),
                     text(" EFEITOS LONGO PRAZO ") | bold | color(Color::Cyan),
@@ -1668,6 +1690,7 @@ Component GameUI::createLawsTab() {
                         text(fmtEff(t.longTermEffects.inflation)) | color(effColor(-t.longTermEffects.inflation)),
                         text("  Desempr: "),
                         text(fmtEff(t.longTermEffects.unemployment)) | color(effColor(-t.longTermEffects.unemployment)),
+                        filler(),
                     }),
                     hbox({
                         text("Receita: "),
@@ -1676,6 +1699,7 @@ Component GameUI::createLawsTab() {
                         text(fmtEff(t.longTermEffects.corruption)) | color(effColor(-t.longTermEffects.corruption)),
                         text("  Felicid: "),
                         text(fmtEff(t.longTermEffects.happiness)) | color(effColor(t.longTermEffects.happiness)),
+                        filler(),
                     }),
                     separator(),
                     // ── Impacto estimado na aprovação ──
@@ -1715,13 +1739,15 @@ Component GameUI::createLawsTab() {
             }
 
             mainContent.push_back(text(" PROPOR NOVA LEI ") | bold | color(Color::Green));
-            mainContent.push_back(hbox({
-                vbox({
-                    text(" Categoria ") | bold,
-                    component->Render(),
-                }) | size(WIDTH, EQUAL, 60),
-                detailBox | flex,
-            }));
+            mainContent.push_back(
+                hbox({
+                    vbox({
+                        text(" Categoria ") | bold,
+                        component->Render(),
+                    }) | size(WIDTH, EQUAL, 60),
+                    detailBox | xflex,
+                }) | xflex
+            );
         }
 
         return vbox(mainContent);

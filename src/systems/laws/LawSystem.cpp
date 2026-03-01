@@ -1803,6 +1803,395 @@ void LawSystem::init() {
         t.groupImpact[SocialGroupType::ACTIVISTS] = 0.3;
         lawTemplates_.push_back(t);
     }
+
+    // ==================== TRIBUTÁRIA — PACOTE ECONÔMICO EXPANDIDO ====================
+    {
+        Law t; t.name = "Imposto sobre Herança e Doações Progressivo";
+        t.description = "Alíquota de 4% a 22% sobre heranças acima de R$500mil (isenta famílias de baixa renda). A cada geração, grandes patrimônios são parcialmente redistribuídos. Modelo da Alemanha e França. Reduz concentração intergeracional de riqueza.";
+        t.category = LawCategory::TAX;
+        t.shortTermEffects.taxRevenue = 0.02; t.shortTermEffects.inequality = -0.02;
+        t.shortTermEffects.gdpGrowth = -0.005;
+        t.longTermEffects.inequality = -0.05; t.longTermEffects.taxRevenue = 0.03;
+        t.longTermEffects.gdpGrowth = 0.005;
+        t.implementationDays = 120; t.publicSupport = 0.58; t.parliamentarySupport = 0.38;
+        t.implementationCost = Money(1.0); t.yearlyMaintenanceCost = Money(0.5);
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = -0.7;
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = -0.4;
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = 0.5;
+        t.groupImpact[SocialGroupType::YOUTH] = 0.3;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Tributação de Criptoativos";
+        t.description = "15-22.5% de IR sobre ganhos com criptomoedas, obrigatoriedade de declaração de carteiras com >R$5mil e informes automáticos de exchanges nacionais à Receita Federal. Atinge mercado de R$300B sem tributação efetiva.";
+        t.category = LawCategory::TAX;
+        t.shortTermEffects.taxRevenue = 0.015; t.shortTermEffects.gdpGrowth = -0.003;
+        t.shortTermEffects.freedom = -0.01;
+        t.longTermEffects.taxRevenue = 0.025; t.longTermEffects.corruption = -0.02;
+        t.implementationDays = 90; t.publicSupport = 0.48; t.parliamentarySupport = 0.52;
+        t.implementationCost = Money(0.8);
+        t.groupImpact[SocialGroupType::YOUTH] = -0.3;
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = -0.3;
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = -0.2;
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = 0.2;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Imposto sobre Serviços Digitais (GAFA Tax)";
+        t.description = "Taxa de 3-5% sobre receita bruta de plataformas digitais com faturamento >R$2B no país. Atinge Google, Meta, Amazon, Apple, Microsoft. Arrecada R$12B/ano e reequilibra concorrência com empresas locais. Risco de retaliação das big techs reduzindo investimentos no país.";
+        t.category = LawCategory::TAX;
+        t.shortTermEffects.taxRevenue = 0.025; t.shortTermEffects.gdpGrowth = -0.005;
+        t.shortTermEffects.happiness = 0.01; t.shortTermEffects.freedom = -0.005;
+        t.longTermEffects.taxRevenue = 0.03; t.longTermEffects.inequality = -0.01;
+        t.longTermEffects.gdpGrowth = -0.005; t.longTermEffects.stability = -0.01;
+        t.implementationDays = 180; t.publicSupport = 0.62; t.parliamentarySupport = 0.48;
+        t.implementationCost = Money(1.5); t.yearlyMaintenanceCost = Money(0.5);
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.3;
+        t.groupImpact[SocialGroupType::WORKERS] = 0.2;
+        t.groupImpact[SocialGroupType::YOUTH] = -0.1;
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = 0.3;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Simples Nacional Digital e MEI Expandido";
+        t.description = "Tributação unificada simplificada para empresas com faturamento até R$10M, regime digital 100% online e alíquotas de 3-15%. Limite do MEI ampliado para R$200k/ano. Formaliza 5M de pequenos negócios e reduz burocracia em 70%.";
+        t.category = LawCategory::TAX;
+        t.shortTermEffects.taxRevenue = -0.01; t.shortTermEffects.gdpGrowth = 0.015;
+        t.shortTermEffects.unemployment = -0.02;
+        t.longTermEffects.gdpGrowth = 0.025; t.longTermEffects.taxRevenue = 0.02;
+        t.longTermEffects.unemployment = -0.03;
+        t.implementationDays = 180; t.publicSupport = 0.72; t.parliamentarySupport = 0.60;
+        t.implementationCost = Money(3.0); t.yearlyMaintenanceCost = Money(1.0);
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.8;
+        t.groupImpact[SocialGroupType::WORKERS] = 0.4;
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = 0.3;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Programa de Anistia Fiscal Estruturada";
+        t.description = "Parcelamento de dívidas tributárias com desconto de até 70% em multas e juros. Prazo de 120 meses. Recupera R$150B em dívida ativa de difícil cobrança. Risco: sinaliza que punção por evasão não é rigorosa.";
+        t.category = LawCategory::TAX;
+        t.shortTermEffects.taxRevenue = 0.06; t.shortTermEffects.gdpGrowth = 0.01;
+        t.shortTermEffects.happiness = 0.01;
+        t.longTermEffects.taxRevenue = -0.02; t.longTermEffects.corruption = 0.01;
+        t.implementationDays = 60; t.publicSupport = 0.55; t.parliamentarySupport = 0.60;
+        t.implementationCost = Money(2.0);
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.6;
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = 0.5;
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = -0.1;
+        t.groupImpact[SocialGroupType::ACTIVISTS] = -0.3;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Imposto Territorial Rural Progressivo (ITR)";
+        t.description = "Alíquota de 0.5% a 5% sobre valor da terra nua conforme área e grau de utilização. Terras improdutivas acima de 1000ha pagam alíquota máxima. Desestimula latifúndios especulativos e libera terra para produção.";
+        t.category = LawCategory::TAX;
+        t.shortTermEffects.taxRevenue = 0.01; t.shortTermEffects.inequality = -0.02;
+        t.shortTermEffects.stability = -0.01;
+        t.longTermEffects.taxRevenue = 0.015; t.longTermEffects.inequality = -0.03;
+        t.longTermEffects.gdpGrowth = 0.01;
+        t.implementationDays = 150; t.publicSupport = 0.52; t.parliamentarySupport = 0.32;
+        t.implementationCost = Money(0.8);
+        t.groupImpact[SocialGroupType::FARMERS] = -0.5;
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = -0.5;
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = 0.5;
+        t.groupImpact[SocialGroupType::INDIGENOUS] = 0.4;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Taxação de Bebidas Alcoólicas e Tabaco";
+        t.description = "Elevação do IPI sobre bebidas alcoólicas em 30% e sobre cigarros em 50%. Tributação extrafiscal: desestimula consumo nocivo e arrecada R$20B extras. Experiência internacional mostra redução de consumo de 10-20%.";
+        t.category = LawCategory::TAX;
+        t.shortTermEffects.taxRevenue = 0.02; t.shortTermEffects.healthcare = 0.01;
+        t.shortTermEffects.happiness = -0.01;
+        t.longTermEffects.taxRevenue = 0.015; t.longTermEffects.healthcare = 0.03;
+        t.longTermEffects.governmentSpending = -0.01;
+        t.implementationDays = 60; t.publicSupport = 0.55; t.parliamentarySupport = 0.50;
+        t.implementationCost = Money(0.5);
+        t.groupImpact[SocialGroupType::ELDERLY] = 0.3;
+        t.groupImpact[SocialGroupType::YOUTH] = 0.2;
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = -0.4;
+        t.groupImpact[SocialGroupType::WORKERS] = -0.2;
+        lawTemplates_.push_back(t);
+    }
+
+    // ==================== ECONÔMICA — PACOTE AVANÇADO ====================
+    {
+        Law t; t.name = "Lei de Responsabilidade Fiscal Rigorosa";
+        t.description = "Teto de crescimento real das despesas em 0% + IPCA. Vedação de vinculações de receita novas, aprovação parlamentar obrigatória para qualquer aumento de gasto. Multas pessoais para gestores que descumprirem. Base para ajuste fiscal de longo prazo.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.gdpGrowth = -0.01; t.shortTermEffects.happiness = -0.02;
+        t.shortTermEffects.governmentSpending = -0.03;
+        t.longTermEffects.gdpGrowth = 0.02; t.longTermEffects.stability = 0.04;
+        t.longTermEffects.governmentSpending = -0.05;
+        t.implementationDays = 180; t.publicSupport = 0.42; t.parliamentarySupport = 0.48;
+        t.implementationCost = Money(1.0); t.yearlyMaintenanceCost = Money(0.5);
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.6;
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = 0.5;
+        t.groupImpact[SocialGroupType::WORKERS] = -0.3;
+        t.groupImpact[SocialGroupType::PUBLIC_SERVANTS] = -0.4;
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = -0.3;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Banco Público de Desenvolvimento Reform.";
+        t.description = "Reestruturação do banco estatal de desenvolvimento: foco exclusivo em projetos de alta externalidade social (infraestrutura verde, inovação, pequenas empresas), controles de governança e auditoria externa independente. Elimina crédito subsidiado a grandes grupos políticos. No curto prazo, a reestruturação reduz crédito disponível e gera instabilidade institucional.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.gdpGrowth = -0.01; t.shortTermEffects.corruption = -0.03;
+        t.shortTermEffects.stability = -0.02; t.shortTermEffects.happiness = -0.01;
+        t.longTermEffects.gdpGrowth = 0.03; t.longTermEffects.corruption = -0.05;
+        t.longTermEffects.inequality = -0.02; t.longTermEffects.stability = 0.02;
+        t.implementationDays = 270; t.publicSupport = 0.58; t.parliamentarySupport = 0.45;
+        t.implementationCost = Money(8.0); t.yearlyMaintenanceCost = Money(2.0);
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.5;
+        t.groupImpact[SocialGroupType::WORKERS] = 0.3;
+        t.groupImpact[SocialGroupType::ACTIVISTS] = 0.4;
+        t.groupImpact[SocialGroupType::PUBLIC_SERVANTS] = -0.2;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Lei Antimonopólio e Livre Concorrência";
+        t.description = "Criação de tribunal antitruste independente, proibição de fusões que concentrem >30% de qualquer mercado, divisão compulsória de grandes conglomerados. Baseado no modelo americano de Sherman Act e europeu de DG Comp. Desinibe inovação e entrada de novos players.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.gdpGrowth = -0.005; t.shortTermEffects.happiness = 0.01;
+        t.shortTermEffects.stability = -0.01;
+        t.longTermEffects.gdpGrowth = 0.02; t.longTermEffects.inequality = -0.02;
+        t.longTermEffects.corruption = -0.03;
+        t.implementationDays = 270; t.publicSupport = 0.60; t.parliamentarySupport = 0.40;
+        t.implementationCost = Money(3.0); t.yearlyMaintenanceCost = Money(1.5);
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = -0.2;
+        t.groupImpact[SocialGroupType::WORKERS] = 0.3;
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = 0.4;
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = -0.4;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Regulação Bancária Rigorosa (Glass-Steagall)";
+        t.description = "Separação obrigatória entre banco comercial (depósitos, crédito) e banco de investimento (apostas, derivativos). Limite de alavancagem de 15:1. Fundo garantidor elevado a R$500k por conta. Reduz risco sistêmico mas limita rentabilidade bancária.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.gdpGrowth = -0.01; t.shortTermEffects.stability = 0.04;
+        t.shortTermEffects.happiness = 0.01;
+        t.longTermEffects.stability = 0.07; t.longTermEffects.gdpGrowth = 0.005;
+        t.longTermEffects.corruption = -0.02;
+        t.implementationDays = 365; t.publicSupport = 0.55; t.parliamentarySupport = 0.38;
+        t.implementationCost = Money(5.0); t.yearlyMaintenanceCost = Money(1.0);
+        t.groupImpact[SocialGroupType::WORKERS] = 0.4;
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = 0.4;
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = -0.4;
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = -0.3;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Moeda Digital do Banco Central (CBDC)";
+        t.description = "Lançamento do Real Digital: carteira digital governamental, pagamentos instantâneos gratuitos 24/7, programabilidade para transferências condicionadas e inclusão de 40M de desbancarizados. Reduz custos de intermediação bancária em R$30B/ano. Impõe riscos à privacidade: governo pode rastrear e bloquear transações de cidadãos. Ameaça modelo de negócio dos bancos tradicionais, podendo gerar saídas de capital.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.gdpGrowth = 0.01; t.shortTermEffects.happiness = 0.02;
+        t.shortTermEffects.governmentSpending = 0.01; t.shortTermEffects.freedom = -0.02;
+        t.shortTermEffects.stability = -0.01;
+        t.longTermEffects.gdpGrowth = 0.02; t.longTermEffects.inequality = -0.02;
+        t.longTermEffects.corruption = -0.03; t.longTermEffects.freedom = -0.015;
+        t.implementationDays = 365*2; t.publicSupport = 0.50; t.parliamentarySupport = 0.52;
+        t.implementationCost = Money(15.0); t.yearlyMaintenanceCost = Money(3.0);
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = 0.6;
+        t.groupImpact[SocialGroupType::YOUTH] = 0.5;
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.3;
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = -0.2;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Microcrédito para Empreendedores Populares";
+        t.description = "Linhas de crédito de R$5k a R$100k para empreendedores informais sem acesso ao sistema bancário convencional. Taxa máxima de 2.5% a.m. com acompanhamento de agente de crédito. Baseado no modelo Grameen Bank. Reduz usura e alavanca economia popular. Risco de inadimplência elevada sem garantias, podendo gerar perdas ao fundo público e pressão inflacionária por expansão de crédito.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.gdpGrowth = 0.01; t.shortTermEffects.inequality = -0.02;
+        t.shortTermEffects.unemployment = -0.01; t.shortTermEffects.inflation = 0.005;
+        t.shortTermEffects.governmentSpending = 0.02;
+        t.longTermEffects.gdpGrowth = 0.02; t.longTermEffects.inequality = -0.03;
+        t.longTermEffects.inflation = 0.003; t.longTermEffects.taxRevenue = -0.005;
+        t.implementationDays = 180; t.publicSupport = 0.65; t.parliamentarySupport = 0.58;
+        t.implementationCost = Money(5.0); t.yearlyMaintenanceCost = Money(8.0);
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = 0.7;
+        t.groupImpact[SocialGroupType::WOMEN] = 0.5;
+        t.groupImpact[SocialGroupType::UNEMPLOYED] = 0.6;
+        t.groupImpact[SocialGroupType::WORKERS] = 0.4;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Cooperativas e Economia Solidária";
+        t.description = "Marco legal das cooperativas: isenções tributárias para cooperativas de trabalhadores, cooperativas de crédito populares e incubadoras solidárias. Criação de 50.000 cooperativas em 10 anos. Alternativa democrática ao capital convencional. As isenções reduzem arrecadação tributária no curto prazo e podem distorcer mercados ao favorecer um modelo específico de empresa.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.gdpGrowth = 0.005; t.shortTermEffects.inequality = -0.02;
+        t.shortTermEffects.happiness = 0.02; t.shortTermEffects.taxRevenue = -0.015;
+        t.longTermEffects.inequality = -0.04; t.longTermEffects.gdpGrowth = 0.01;
+        t.longTermEffects.unemployment = -0.02; t.longTermEffects.taxRevenue = -0.008;
+        t.implementationDays = 120; t.publicSupport = 0.55; t.parliamentarySupport = 0.45;
+        t.implementationCost = Money(3.0); t.yearlyMaintenanceCost = Money(2.0);
+        t.groupImpact[SocialGroupType::WORKERS] = 0.7;
+        t.groupImpact[SocialGroupType::UNIONS] = 0.6;
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = 0.5;
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = -0.2;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Reindustrialização Verde Nacional";
+        t.description = "Política industrial para setores intensivos em energia limpa: baterias, painéis solares, hidrogênio verde, ônibus elétricos. Crédito subsidiado de R$100B, isenção de IPI por 10 anos e parque industrial verde em 3 regiões. Captura 300k empregos qualificados. No curto prazo, os maciços subsídios geram pressão inflacionária e elevam o déficit fiscal. Empresas industriais tradicionais perdem competitividade.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.gdpGrowth = 0.02; t.shortTermEffects.unemployment = -0.02;
+        t.shortTermEffects.governmentSpending = 0.04; t.shortTermEffects.pollution = -0.01;
+        t.shortTermEffects.inflation = 0.015; t.shortTermEffects.stability = -0.01;
+        t.longTermEffects.gdpGrowth = 0.04; t.longTermEffects.pollution = -0.05;
+        t.longTermEffects.unemployment = -0.03; t.longTermEffects.inflation = 0.005;
+        t.implementationDays = 365*2; t.publicSupport = 0.62; t.parliamentarySupport = 0.52;
+        t.implementationCost = Money(30.0); t.yearlyMaintenanceCost = Money(15.0);
+        t.groupImpact[SocialGroupType::WORKERS] = 0.5;
+        t.groupImpact[SocialGroupType::SCIENTISTS] = 0.6;
+        t.groupImpact[SocialGroupType::ENVIRONMENTALISTS] = 0.7;
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.4;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Lei Antiparaísos Fiscais";
+        t.description = "CFC rules rigorosas: tributação automática de lucros não distribuídos por controladas em jurisdições com alíquota <15%. Lista negra de 40 paraísos fiscais com acesso restrito a crédito estatal e contratos públicos. Baseado no Pilar 2 da OCDE.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.taxRevenue = 0.02; t.shortTermEffects.gdpGrowth = -0.005;
+        t.shortTermEffects.corruption = -0.02;
+        t.longTermEffects.taxRevenue = 0.04; t.longTermEffects.corruption = -0.04;
+        t.longTermEffects.inequality = -0.02;
+        t.implementationDays = 180; t.publicSupport = 0.65; t.parliamentarySupport = 0.42;
+        t.implementationCost = Money(2.0); t.yearlyMaintenanceCost = Money(1.0);
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = 0.5;
+        t.groupImpact[SocialGroupType::ACTIVISTS] = 0.6;
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = -0.6;
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = -0.4;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Lei de Recuperação Judicial Modernizada";
+        t.description = "Reforma da Lei 11.101: automatiza aprovação de planos simples, cria turmas especializadas em insolvência, reduz tempo médio de recuperação de 4 anos para 18 meses e eleva taxa de recuperação de credores de 20% para 45%. Reduz custo sistêmico de falências. A flexibilização pode ser usada para protelar pagamentos a trabalhadores credores e criar insegurança jurídica temporária durante a transição.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.gdpGrowth = 0.01; t.shortTermEffects.happiness = 0.01;
+        t.shortTermEffects.stability = -0.01; t.shortTermEffects.unemployment = 0.005;
+        t.longTermEffects.gdpGrowth = 0.015; t.longTermEffects.corruption = -0.02;
+        t.longTermEffects.stability = 0.02; t.longTermEffects.unemployment = -0.01;
+        t.implementationDays = 90; t.publicSupport = 0.55; t.parliamentarySupport = 0.58;
+        t.implementationCost = Money(1.5); t.yearlyMaintenanceCost = Money(0.5);
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.7;
+        t.groupImpact[SocialGroupType::WORKERS] = 0.3;
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = 0.3;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Fundo de Estabilização Econômica";
+        t.description = "Criação de reserva anticíclica: nos anos com crescimento >4%, 1-2% do PIB são poupados; nos anos de recessão, o fundo financia estímulos sem aumentar dívida. Meta de R$250B em 15 anos. Modelo norueguês adaptado ao emergente. Exige austeridade no curto prazo — o governo desvia recursos do consumo presente para poupança futura, reduzindo temporariamente aprovação popular e investimentos em serviços.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.governmentSpending = -0.02; t.shortTermEffects.stability = 0.01;
+        t.shortTermEffects.happiness = -0.02; t.shortTermEffects.gdpGrowth = -0.008;
+        t.longTermEffects.stability = 0.06; t.longTermEffects.gdpGrowth = 0.01;
+        t.longTermEffects.governmentSpending = 0.03; t.longTermEffects.happiness = 0.02;
+        t.implementationDays = 180; t.publicSupport = 0.60; t.parliamentarySupport = 0.55;
+        t.implementationCost = Money(5.0); t.yearlyMaintenanceCost = Money(1.0);
+        t.groupImpact[SocialGroupType::WORKERS] = 0.3;
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.4;
+        t.groupImpact[SocialGroupType::YOUTH] = 0.5;
+        t.groupImpact[SocialGroupType::RETIREES] = 0.4;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Meta de Inflação e Autonomia do Banco Central";
+        t.description = "Constitucionaliza a independência do BC com mandatos fixos de 4 anos para diretores, meta de inflação de 3% ±1.5pp e publicação de atas em 8 dias úteis. Impede governo de usar BC para financiamento monetário do déficit. Ancora expectativas e reduz prêmio de risco.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.inflation = -0.015; t.shortTermEffects.stability = 0.03;
+        t.shortTermEffects.gdpGrowth = -0.005;
+        t.longTermEffects.inflation = -0.03; t.longTermEffects.stability = 0.05;
+        t.longTermEffects.gdpGrowth = 0.015;
+        t.implementationDays = 90; t.publicSupport = 0.48; t.parliamentarySupport = 0.55;
+        t.implementationCost = Money(0.5); t.yearlyMaintenanceCost = Money(0.2);
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.6;
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = 0.5;
+        t.groupImpact[SocialGroupType::WORKERS] = -0.1;
+        t.groupImpact[SocialGroupType::PUBLIC_SERVANTS] = -0.2;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Dolarização Parcial da Dívida Pública";
+        t.description = "Permite emissão de títulos públicos indexados a moedas estrangeiras (dólar, euro) para reduzir custo de refinanciamento. Eleva credibilidade perante investidores internacionais mas cria risco cambial para o Tesouro em caso de desvalorização brusca.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.gdpGrowth = 0.005; t.shortTermEffects.stability = 0.01;
+        t.shortTermEffects.governmentSpending = -0.01;
+        t.longTermEffects.gdpGrowth = 0.01; t.longTermEffects.stability = -0.01;
+        t.longTermEffects.inequality = 0.01;
+        t.implementationDays = 120; t.publicSupport = 0.30; t.parliamentarySupport = 0.45;
+        t.implementationCost = Money(0.5);
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = 0.4;
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.3;
+        t.groupImpact[SocialGroupType::NATIONALISTS] = -0.5;
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = -0.3;
+        lawTemplates_.push_back(t);
+    }
+
+    // ==================== ECONÔMICA — COMÉRCIO E INVESTIMENTO ====================
+    {
+        Law t; t.name = "Proibição de Exportar Commodities Sem Beneficiamento";
+        t.description = "Veda exportação de minério de ferro, soja bruta, petróleo não refinado e madeira sem processamento mínimo. Força agregação de valor internamente, criando 1M de empregos industriais, mas provoca conflitos na OMC e reduz receitas cambiais no curto prazo.";
+        t.category = LawCategory::TRADE;
+        t.shortTermEffects.gdpGrowth = -0.01; t.shortTermEffects.taxRevenue = -0.02;
+        t.shortTermEffects.unemployment = -0.02;
+        t.longTermEffects.gdpGrowth = 0.03; t.longTermEffects.inequality = -0.02;
+        t.longTermEffects.unemployment = -0.03;
+        t.implementationDays = 365; t.publicSupport = 0.55; t.parliamentarySupport = 0.40;
+        t.implementationCost = Money(5.0); t.yearlyMaintenanceCost = Money(2.0);
+        t.groupImpact[SocialGroupType::WORKERS] = 0.5;
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.2;
+        t.groupImpact[SocialGroupType::FARMERS] = -0.4;
+        t.groupImpact[SocialGroupType::NATIONALISTS] = 0.5;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Medidas Antidumping e Salvaguardas";
+        t.description = "Mecanismo automático de salvaguarda: quando importações crescem >20% a.a. em setor estratégico, tarifa de compensação de 15-35% é aplicada automaticamente após investigação de 90 dias. Proteção setorial rápida contra práticas desleais de comércio.";
+        t.category = LawCategory::TRADE;
+        t.shortTermEffects.gdpGrowth = -0.005; t.shortTermEffects.taxRevenue = 0.01;
+        t.shortTermEffects.unemployment = -0.01;
+        t.longTermEffects.gdpGrowth = 0.01; t.longTermEffects.inflation = 0.01;
+        t.implementationDays = 90; t.publicSupport = 0.55; t.parliamentarySupport = 0.60;
+        t.implementationCost = Money(1.0); t.yearlyMaintenanceCost = Money(0.5);
+        t.groupImpact[SocialGroupType::WORKERS] = 0.4;
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.3;
+        t.groupImpact[SocialGroupType::FARMERS] = 0.3;
+        t.groupImpact[SocialGroupType::LOWER_CLASS] = -0.2;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Acordo de Investimentos Bilaterais (BIT)";
+        t.description = "Rede de acordos bilaterais de proteção ao investimento com 20 países em 5 anos: garantias contra expropriação, transferência de lucros e arbitragem internacional. Dobra o fluxo de IED no longo prazo e sinaliza segurança jurídica para multinacionais. Reduz soberania regulatória: empresas estrangeiras podem processar o Estado por mudanças de política em tribunais privados de arbitragem (ISDS). Lucros remetidos ao exterior reduzem poupança interna.";
+        t.category = LawCategory::TRADE;
+        t.shortTermEffects.gdpGrowth = 0.01; t.shortTermEffects.stability = -0.01;
+        t.shortTermEffects.taxRevenue = -0.005; t.shortTermEffects.freedom = -0.01;
+        t.longTermEffects.gdpGrowth = 0.03; t.longTermEffects.inequality = 0.02;
+        t.longTermEffects.stability = 0.02; t.longTermEffects.freedom = -0.015;
+        t.implementationDays = 365; t.publicSupport = 0.42; t.parliamentarySupport = 0.55;
+        t.implementationCost = Money(3.0); t.yearlyMaintenanceCost = Money(1.0);
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.6;
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = 0.4;
+        t.groupImpact[SocialGroupType::NATIONALISTS] = -0.5;
+        t.groupImpact[SocialGroupType::WORKERS] = 0.2;
+        lawTemplates_.push_back(t);
+    }
+    {
+        Law t; t.name = "Câmbio Administrado com Banda Cambial";
+        t.description = "Banco Central mantém taxa de câmbio dentro de banda de ±10% ao redor de taxa de equilíbrio, com intervenção diária no mercado. Reduz volatilidade para exportadores e importadores mas exige reservas elevadas e pode criar pressão especulativa. Em caso de ataque especulativo, o BC pode perder bilhões de reservas em dias e ser forçado a abandonar a banda de forma traumática, gerando crise cambial.";
+        t.category = LawCategory::ECONOMIC;
+        t.shortTermEffects.stability = 0.03; t.shortTermEffects.gdpGrowth = 0.005;
+        t.shortTermEffects.inflation = -0.01; t.shortTermEffects.governmentSpending = 0.015;
+        t.longTermEffects.stability = -0.02; t.longTermEffects.gdpGrowth = 0.01;
+        t.longTermEffects.inflation = -0.005; t.longTermEffects.happiness = -0.01;
+        t.implementationDays = 30; t.publicSupport = 0.45; t.parliamentarySupport = 0.50;
+        t.implementationCost = Money(2.0); t.yearlyMaintenanceCost = Money(1.0);
+        t.groupImpact[SocialGroupType::ENTREPRENEURS] = 0.4;
+        t.groupImpact[SocialGroupType::FARMERS] = 0.3;
+        t.groupImpact[SocialGroupType::NATIONALISTS] = 0.3;
+        t.groupImpact[SocialGroupType::UPPER_CLASS] = -0.3;
+        lawTemplates_.push_back(t);
+    }
 }
 
 void LawSystem::update(double deltaTime, const SimDate& currentDate) {
